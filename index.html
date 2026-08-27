@@ -585,7 +585,7 @@
 
   /* ---------- canvas area ---------- */
   .canvas-wrap{flex:1 1 auto;display:flex;flex-direction:column;min-width:0;position:relative;}
-  .canvas-stage{flex:1 1 auto;display:flex;align-items:center;justify-content:center;min-height:0;padding:24px;}
+  .canvas-stage{position:relative;flex:1 1 auto;display:flex;align-items:center;justify-content:center;min-height:0;padding:24px;}
   canvas{
     max-width:100%;max-height:100%;
     border-radius:var(--r-lg);
@@ -719,6 +719,7 @@
     .body{display:block;position:relative;}
     .canvas-wrap{height:100%;}
     .canvas-stage{padding:12px 12px calc(var(--sheet-peek,216px) + 12px);}
+    .canvas-cta{bottom:calc(var(--sheet-peek,216px) + 28px);}
     .statusbar{
       order:-1;
       border-top:0;border-bottom:1px solid var(--divider);
@@ -745,6 +746,33 @@
     .modal{width:100%;max-width:none;height:min(94dvh,100%);}
     .kbd-pop{right:10px;}
   }
+  /* ---------- hand mode: canvas call to action ---------- */
+  /* A DOM overlay, never drawn into the canvas, so PNG and video
+     exports stay clean. It sits where the eye already is: the ask
+     for the camera belongs next to the thing it acts on. */
+  .canvas-cta{
+    position:absolute;left:50%;bottom:44px;transform:translateX(-50%);
+    display:flex;flex-direction:column;align-items:center;gap:10px;
+    max-width:min(420px,calc(100% - 32px));
+    pointer-events:none;z-index:4;
+    animation:cta-in 380ms var(--ease-out-quint) backwards;
+  }
+  @keyframes cta-in{from{opacity:0;transform:translate(-50%,10px);}}
+  .cta-msg{
+    margin:0;padding:5px 12px 6px;border-radius:var(--r-pill);
+    font-size:12px;line-height:1.4;text-align:center;color:var(--text-2);
+    background:color-mix(in srgb, var(--panel-bg-solid) 84%, transparent);
+    -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
+    box-shadow:0 1px 2px rgba(0,0,0,.06);
+  }
+  .cta-msg.is-error{color:#c1392b;}
+  :root[data-theme="dark"] .cta-msg.is-error{color:#ff8a7a;}
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]) .cta-msg.is-error{color:#ff8a7a;}
+  }
+  .canvas-cta .btn{pointer-events:auto;box-shadow:var(--shadow-panel);}
+  @media (prefers-reduced-motion: reduce){ .canvas-cta{animation:none;} }
+
   /* ---------- hand mode: camera panel ---------- */
   .cam-row{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
   .cam-row .btn{flex:0 0 auto;}
@@ -828,6 +856,16 @@
     <main class="canvas-wrap">
       <div class="canvas-stage">
         <canvas id="c" width="1200" height="1200" aria-label="Particle text preview" role="img"></canvas>
+        <div class="canvas-cta" id="canvasCta" hidden>
+          <p class="cta-msg" id="ctaMsg">Shape the letter with your hand</p>
+          <button type="button" class="btn btn-primary btn-compact" id="ctaBtn">
+            <svg width="13" height="12" viewBox="0 0 13 12" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <rect x="0.9" y="2.6" width="8" height="7.2" rx="1.6"/>
+              <path d="M8.9 6.1 12.1 4v5l-3.2-2.1z"/>
+            </svg>
+            <span id="ctaBtnLabel">Turn on camera</span>
+          </button>
+        </div>
       </div>
       <div class="statusbar">
         <span class="cell"><span class="dot" id="stateDot"></span><b id="stateLabel">static</b></span>
@@ -2621,6 +2659,7 @@ C</textarea>
     var wasHidden = handGroup.hidden;
     handGroup.hidden = !hand;
     if(!hand) stopCamera();
+    else syncCamUI();
     if(hand && wasHidden) requestAnimationFrame(function(){ syncAllSegs(true); });
   }
   modeSeg.addEventListener("click", function(e){
@@ -2695,62 +2734,90 @@ C</textarea>
   var camChip = document.getElementById("camChip");
   var camChipLabel = document.getElementById("camChipLabel");
   var camBtnLabel = document.getElementById("camBtnLabel");
+  var camEmpty = document.getElementById("camEmpty");
   var handRingSeg = document.getElementById("handRingSeg");
+  var canvasCta = document.getElementById("canvasCta");
+  var ctaMsg = document.getElementById("ctaMsg");
+  var ctaBtn = document.getElementById("ctaBtn");
+  var ctaBtnLabel = document.getElementById("ctaBtnLabel");
   var camCtx = camCanvas.getContext("2d");
   var tracker = null;
+  /* off | asking | live | error drives the panel row, the preview
+     placeholder and the canvas prompt from one place */
+  var camState = "off", camMsg = "", sawHand = false;
   var trackerOpts = {
     grip: S.handGrip,
     onFrame: function(h){ if(engine && engine.setHand) engine.setHand(h); },
-    onError: function(err){ setCamNote(String(err && err.message || err), true); stopCamera(); }
+    onError: function(err){
+      stopCamera();
+      camMsg = String((err && err.message) || err);
+      camState = "error";
+      syncCamUI();
+    }
   };
 
-  function setCamNote(text, isError){
-    camNote.textContent = text;
-    camNote.classList.toggle("is-error", !!isError);
-  }
-  function syncCamBtn(){
-    var on = !!(tracker && tracker.isRunning());
-    camBtn.setAttribute("aria-pressed", on ? "true" : "false");
-    camBtnLabel.textContent = on ? "Turn off camera" : "Turn on camera";
-    camStage.classList.toggle("live", on);
+  function syncCamUI(){
+    var live = camState === "live", asking = camState === "asking";
+    camBtn.disabled = asking;
+    camBtn.setAttribute("aria-pressed", live ? "true" : "false");
+    camBtnLabel.textContent = live ? "Turn off camera" : asking ? "Waiting…" : "Turn on camera";
+    camStage.classList.toggle("live", live);
+    camEmpty.textContent = asking ? "Waiting for permission…" : "Camera off";
+    camNote.textContent = camState === "error" ? camMsg
+      : asking ? "Allow the camera in your browser's prompt."
+      : "Video stays in this browser tab.";
+    camNote.classList.toggle("is-error", camState === "error");
+
+    var showCta = S.mode === "hand" && !live;
+    if(canvasCta.hidden !== !showCta) canvasCta.hidden = !showCta;
+    if(showCta){
+      ctaMsg.textContent = camState === "error" ? camMsg : "Shape the letter with your hand";
+      ctaMsg.classList.toggle("is-error", camState === "error");
+      ctaBtnLabel.textContent = asking ? "Waiting for permission…"
+        : camState === "error" ? "Try again" : "Turn on camera";
+      ctaBtn.disabled = asking;
+    }
   }
   function startCamera(){
-    if(tracker && tracker.isRunning()) return;
+    if(camState === "asking" || camState === "live") return;
     if(!tracker) tracker = handTracker(trackerOpts);
-    setCamNote("Asking for camera access…");
-    camBtn.disabled = true;
+    camState = "asking"; camMsg = ""; sawHand = false;
+    syncCamUI();
     tracker.start().then(function(){
-      camBtn.disabled = false;
-      setCamNote("Video stays in this browser tab.");
-      syncCamBtn();
+      camState = "live";
+      resetChip();
+      syncCamUI();
     })["catch"](function(err){
-      camBtn.disabled = false;
       var name = err && err.name;
-      var msg = name === "NotAllowedError" || name === "SecurityError"
-        ? "Camera blocked. Allow it in the address bar, then try again."
+      /* Chrome reports a dismissed prompt and a hard block the same
+         way, so the copy has to cover both without guessing */
+      camMsg = name === "NotAllowedError" || name === "SecurityError"
+        ? "Camera not allowed. Try again, or re-allow it in the address bar if you blocked it."
         : name === "NotFoundError" || name === "OverconstrainedError"
-          ? "No camera found."
+          ? "No camera found on this device."
           : name === "NotReadableError"
             ? "The camera is busy in another app."
             : (err && err.message) || "Could not start the camera.";
-      setCamNote(msg, true);
-      syncCamBtn();
+      camState = "error";
+      syncCamUI();
     });
   }
   function stopCamera(){
     if(tracker && tracker.isRunning()){
       tracker.stop();
       camCtx.clearRect(0, 0, camCanvas.width, camCanvas.height);
-      setCamNote("Video stays in this browser tab.");
       resetChip();
     }
+    if(camState !== "error") camMsg = "";
+    if(camState === "live" || camState === "asking") camState = "off";
     if(engine && engine.setHand) engine.setHand(null);
-    syncCamBtn();
+    syncCamUI();
   }
   camBtn.addEventListener("click", function(){
-    if(tracker && tracker.isRunning()) stopCamera();
+    if(camState === "live") stopCamera();
     else startCamera();
   });
+  ctaBtn.addEventListener("click", startCamera);
   handRingSeg.addEventListener("click", function(e){
     var btn = e.target.closest("button[data-ring]");
     if(!btn) return;
@@ -2764,12 +2831,13 @@ C</textarea>
   function resetChip(){
     lastChip = "";
     camChip.classList.remove("is-grab", "is-push");
-    camChipLabel.textContent = "Looking for a hand";
+    camChipLabel.textContent = sawHand ? "Looking for a hand" : "Wave your hand to start";
   }
   function drawCamPreview(){
     if(!tracker || !tracker.isRunning() || handGroup.hidden) return;
     tracker.drawPreview(camCtx, camCanvas.width, camCanvas.height);
     var r = tracker.result;
+    if(r.active) sawHand = true;
     var chip = !r.active ? "idle" : (r.grab ? "grab" : "push");
     if(chip !== lastChip){
       lastChip = chip;
@@ -2777,7 +2845,7 @@ C</textarea>
       camChip.classList.toggle("is-push", chip === "push");
       camChipLabel.textContent = chip === "grab" ? "Fist — gathering"
         : chip === "push" ? "Open palm — pushing"
-        : "Looking for a hand";
+        : sawHand ? "Looking for a hand" : "Wave your hand to start";
     }
   }
 
