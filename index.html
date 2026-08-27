@@ -773,6 +773,47 @@
     .modal{width:100%;max-width:none;height:min(94dvh,100%);}
     .kbd-pop{right:10px;}
   }
+
+  /* ---------- the two galleries: pick a design, not a parameter ---------- */
+  .pick{margin-top:14px;}
+  .pick-head{
+    font-size:11px;font-weight:600;letter-spacing:.03em;text-transform:uppercase;
+    color:var(--text-3);margin:0 2px 7px;
+  }
+  .look-chip{
+    display:flex;align-items:center;gap:7px;
+    padding:5px 11px 5px 6px;min-height:34px;
+  }
+  .look-chip.active{
+    background:var(--panel-bg-solid);color:var(--text);
+    box-shadow:var(--shadow-ctrl),0 0 0 1.5px var(--accent);
+  }
+  .look-sw,.theme-strip{
+    display:flex;align-items:center;gap:2px;
+    padding:3px;border-radius:5px;flex:0 0 auto;
+  }
+  .look-sw i,.theme-strip i{
+    display:block;width:6px;height:6px;border-radius:50%;
+  }
+  .theme-row{gap:6px;}
+  .theme-chip{
+    flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:4px;
+    padding:6px 8px 5px;border:0;border-radius:var(--r-sm);
+    background:var(--control-bg);
+    transition:transform var(--dur-tap) var(--ease),box-shadow var(--dur-fast) var(--ease);
+  }
+  .theme-chip:hover{transform:translateY(-1px);}
+  .theme-chip.active{box-shadow:0 0 0 2px var(--accent);}
+  .theme-chip .theme-strip{padding:0;}
+  .theme-chip .theme-name{
+    font-size:10.5px;font-weight:500;letter-spacing:.01em;
+  }
+  .sub-head{
+    font-size:11px;font-weight:600;letter-spacing:.03em;text-transform:uppercase;
+    color:var(--text-3);margin:18px 2px 10px;
+  }
+  .sub-head:first-child{margin-top:2px;}
+
   /* ---------- hand mode: canvas call to action ---------- */
   /* A DOM overlay, never drawn into the canvas, so PNG and video
      exports stay clean. It sits where the eye already is: the ask
@@ -874,11 +915,21 @@
     flex:1;min-width:0;font-size:12px;color:var(--text-2);line-height:1.35;
   }
   .cam-note.is-error{color:var(--danger);}
+  /* Watching your own hand used to mean looking away from the work,
+     down into the panel. It floats over the canvas now, only while
+     Hand mode is on, and it is a DOM layer so exports stay clean. */
   .cam-stage{
-    position:relative;width:100%;aspect-ratio:4/3;margin-bottom:14px;
+    position:absolute;top:18px;left:50%;transform:translateX(-50%);
+    width:172px;aspect-ratio:4/3;z-index:4;
     border-radius:var(--r-md);overflow:hidden;
-    background:var(--control-bg);border:1px solid var(--panel-border);
+    background:var(--panel-bg-solid);border:1px solid var(--panel-border);
+    box-shadow:0 1px 3px rgba(20,20,19,.14),0 10px 26px rgba(20,20,19,.12);
+    opacity:0;pointer-events:none;
+    transition:opacity var(--dur-med) var(--ease);
   }
+  .cam-stage.live{opacity:1;pointer-events:auto;}
+  .cam-stage[hidden]{display:none !important;}
+  .cam-stage canvas{cursor:crosshair;}
   .cam-stage canvas{display:block;width:100%;height:100%;}
   .cam-empty{
     position:absolute;inset:0;display:grid;place-items:center;
@@ -946,6 +997,11 @@
     <main class="canvas-wrap">
       <div class="canvas-stage">
         <canvas id="c" width="1200" height="1200" aria-label="Particle text preview" role="img"></canvas>
+        <div class="cam-stage" id="camStage">
+          <canvas id="camCanvas" width="320" height="240" title="Click whatever you want tracked"></canvas>
+          <p class="cam-empty" id="camEmpty">Camera off</p>
+          <span class="cam-chip" id="camChip"><span class="dot"></span><b id="camChipLabel">Looking for a hand</b></span>
+        </div>
         <div class="coach" id="coach" hidden aria-hidden="true">
           <div class="coach-step" data-step="push">
             <div class="coach-art"><svg class="coach-hand" width="28" height="28" viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 14.5V6.2a1.35 1.35 0 0 1 2.7 0v6.6"/><path d="M12.7 12.8V5a1.35 1.35 0 0 1 2.7 0v7.8"/><path d="M15.4 12.8V6a1.35 1.35 0 0 1 2.7 0v7.4"/><path d="M18.1 13.4V8.4a1.35 1.35 0 0 1 2.7 0v6.9c0 4.3-2.9 7.2-7 7.2-3.8 0-6.5-2.5-6.5-5.9v-4.4"/><path d="M10 14.5 7.7 12a1.35 1.35 0 0 0-2 1.8"/></svg><span class="coach-field"><span class="coach-dot" style="background:#d97a3f;left:28px;top:3px;--dx:6px;--dy:-5px;animation-delay:0ms"></span><span class="coach-dot" style="background:#33455c;left:52px;top:13px;--dx:8px;--dy:2px;animation-delay:140ms"></span><span class="coach-dot" style="background:#3f8f8a;left:30px;top:32px;--dx:5px;--dy:6px;animation-delay:280ms"></span><span class="coach-dot" style="background:#e8b54a;left:58px;top:30px;--dx:7px;--dy:3px;animation-delay:420ms"></span></span></div>
@@ -985,7 +1041,6 @@
       <button type="button" class="sheet-grip" id="sheetGrip" aria-label="Resize panel sheet"><span></span></button>
 
       <div class="panel-pinned">
-        <div class="looks-row" id="looksRow" aria-label="Looks"></div>
         <div class="row" style="margin-bottom:0">
           <label for="letterInput">Text</label>
           <div class="stepper" id="textStepper">
@@ -1016,150 +1071,20 @@
             <p class="hint" style="margin-top:0">Turn the camera on and shape the letter with your hand.</p>
           </div>
         </div>
-        <div class="quick-row">
-          <label for="seedInput">Seed</label>
-          <input class="text-field seed-field" id="seedInput" inputmode="numeric" autocomplete="off" spellcheck="false" value="88172645" aria-label="Random seed, press Enter to apply" title="Seed (Up / Down to step)" />
-          <button class="btn btn-ghost btn-compact" id="reseedBtn" title="New random seed">
-            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M10.8 6a4.8 4.8 0 1 1-1.4-3.4"/>
-              <path d="M10.9 .9v2.2H8.7"/>
-            </svg>
-            Reseed
-          </button>
+
+        <div class="pick">
+          <div class="pick-head"><span>Look</span></div>
+          <div class="looks-row" id="looksRow" aria-label="Looks"></div>
+        </div>
+        <div class="pick">
+          <div class="pick-head"><span>Colour</span></div>
+          <div class="looks-row theme-row" id="themeRow" aria-label="Colour themes"></div>
         </div>
       </div>
 
       <div class="panel-scroll" id="panelScroll">
 
-        <section class="group" style="--i:1" data-group="shape">
-          <button type="button" class="group-head" aria-expanded="true" aria-controls="shapeBody">
-            <svg class="chev" width="9" height="9" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 1.5 7 5 3.5 8.5"/></svg>
-            <span>Shape</span>
-          </button>
-          <div class="collapse" id="shapeBody">
-            <div class="collapse-inner">
-              <div class="group-body">
-                <div class="seg" id="shapeSeg" role="group" aria-label="Shape type">
-                  <button type="button" data-shape="circle" class="active">Circle</button>
-                  <button type="button" data-shape="square">Square</button>
-                  <button type="button" data-shape="ascii">ASCII</button>
-                </div>
-                <div style="height:14px"></div>
-                <div class="ctl">
-                  <div class="ctl-head"><label for="minSize">Min size</label><span class="val" id="minSizeVal">1</span></div>
-                  <input type="range" id="minSize" min="0.5" max="20" step="0.5" value="1">
-                </div>
-                <div class="ctl">
-                  <div class="ctl-head"><label for="maxSize">Max size</label><span class="val" id="maxSizeVal">15</span></div>
-                  <input type="range" id="maxSize" min="1" max="30" step="0.5" value="15">
-                </div>
-                <div class="ctl" id="rotRow">
-                  <div class="ctl-head"><label for="rotJitter">Rotation jitter</label><span class="val" id="rotJitterVal">60°</span></div>
-                  <input type="range" id="rotJitter" min="0" max="180" step="5" value="60">
-                </div>
-                <div class="ctl" id="brickRow" hidden>
-                  <div class="ctl-head"><label for="brickBars">Stack density</label><span class="val" id="brickBarsVal">5</span></div>
-                  <input type="range" id="brickBars" min="2" max="10" step="1" value="5">
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section class="group" style="--i:2" data-group="distribution">
-          <button type="button" class="group-head" aria-expanded="false" aria-controls="distributionBody">
-            <svg class="chev" width="9" height="9" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 1.5 7 5 3.5 8.5"/></svg>
-            <span>Distribution</span>
-          </button>
-          <div class="collapse" id="distributionBody">
-            <div class="collapse-inner">
-              <div class="group-body">
-                <div class="ctl">
-                  <div class="ctl-head"><label for="count">Count</label><span class="val" id="countVal">2920</span></div>
-                  <input type="range" id="count" min="300" max="6000" step="20" value="2920">
-                </div>
-                <div class="ctl">
-                  <div class="ctl-head"><label for="edgeFeather">Edge feather</label><span class="val" id="edgeFeatherVal">6</span></div>
-                  <input type="range" id="edgeFeather" min="0" max="20" step="1" value="6">
-                </div>
-                <div class="ctl">
-                  <div class="ctl-head"><label for="minOpacity">Opacity</label><span class="val" id="minOpacityVal">0.90</span></div>
-                  <input type="range" id="minOpacity" min="0.1" max="1" step="0.05" value="0.9">
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section class="group" style="--i:3" data-group="life">
-          <button type="button" class="group-head" aria-expanded="false" aria-controls="lifeBody">
-            <svg class="chev" width="9" height="9" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 1.5 7 5 3.5 8.5"/></svg>
-            <span>Life</span>
-          </button>
-          <div class="collapse" id="lifeBody">
-            <div class="collapse-inner">
-              <div class="group-body">
-                <div class="ctl">
-                  <div class="ctl-head"><label for="trembleAmp">Tremble amount</label><span class="val" id="trembleAmpVal">6.5</span></div>
-                  <input type="range" id="trembleAmp" min="0" max="20" step="0.5" value="6.5">
-                </div>
-                <div class="ctl">
-                  <div class="ctl-head"><label for="trembleSpeed">Tremble speed</label><span class="val" id="trembleSpeedVal">2.0</span></div>
-                  <input type="range" id="trembleSpeed" min="0.2" max="6" step="0.1" value="2">
-                </div>
-                <div class="ctl">
-                  <div class="ctl-head"><label for="breathAmp">Breathing</label><span class="val" id="breathAmpVal">0.36</span></div>
-                  <input type="range" id="breathAmp" min="0" max="1" step="0.02" value="0.36">
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section class="group" style="--i:4" data-group="motion">
-          <button type="button" class="group-head" aria-expanded="false" aria-controls="motionBody">
-            <svg class="chev" width="9" height="9" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 1.5 7 5 3.5 8.5"/></svg>
-            <span>Motion</span>
-          </button>
-          <div class="collapse" id="motionBody">
-            <div class="collapse-inner">
-              <div class="group-body">
-                <div class="collapse" id="seqRow">
-                  <div class="collapse-inner">
-                    <div class="ctl">
-                      <div class="ctl-head"><label for="seqInput">Sequence</label><span class="val">One phrase per line</span></div>
-                      <textarea class="text-field" id="seqInput" rows="3" spellcheck="false" aria-label="Sequence, one phrase per line">A
-B
-C</textarea>
-                    </div>
-                  </div>
-                </div>
-                <div class="collapse" id="holdRow">
-                  <div class="collapse-inner">
-                    <div class="ctl">
-                      <div class="ctl-head"><label for="holdTime">Hold</label><span class="val" id="holdTimeVal">1.8s</span></div>
-                      <input type="range" id="holdTime" min="0.2" max="5" step="0.1" value="1.8">
-                    </div>
-                  </div>
-                </div>
-                <div class="ctl">
-                  <div class="ctl-head"><label for="scatterTime">Scatter</label><span class="val" id="scatterTimeVal">1.1s</span></div>
-                  <input type="range" id="scatterTime" min="0.2" max="3" step="0.1" value="1.1">
-                </div>
-                <div class="ctl">
-                  <div class="ctl-head"><label for="reformTime">Reform</label><span class="val" id="reformTimeVal">1.1s</span></div>
-                  <input type="range" id="reformTime" min="0.2" max="3" step="0.1" value="1.1">
-                </div>
-                <div class="ctl">
-                  <div class="ctl-head"><label for="scatterRange">Spread</label><span class="val" id="scatterRangeVal">0.27</span></div>
-                  <input type="range" id="scatterRange" min="0" max="0.8" step="0.01" value="0.27">
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section class="group" style="--i:5" data-group="hand" id="handGroup" hidden>
+        <section class="group" style="--i:1" data-group="hand" id="handGroup" hidden>
           <button type="button" class="group-head" aria-expanded="true" aria-controls="handBody">
             <svg class="chev" width="9" height="9" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 1.5 7 5 3.5 8.5"/></svg>
             <span>Hand</span>
@@ -1177,68 +1102,147 @@ C</textarea>
                   </button>
                   <span class="cam-note" id="camNote" role="status">Video stays in this browser tab.</span>
                 </div>
-                <div class="cam-stage" id="camStage">
-                  <canvas id="camCanvas" width="320" height="240" aria-hidden="true"></canvas>
-                  <p class="cam-empty" id="camEmpty">Camera off</p>
-                  <span class="cam-chip" id="camChip"><span class="dot"></span><b id="camChipLabel">Looking for a hand</b></span>
+                <div class="seg seg-small" id="handEffectSeg" role="group" aria-label="Hand effect">
+                  <button type="button" data-effect="scatter" class="active">Scatter</button>
+                  <button type="button" data-effect="reveal">Reveal</button>
+                  <button type="button" data-effect="magnet">Magnet</button>
+                </div>
+                <p class="hint" id="effectHint">An open palm blows the letter apart and it stays apart; a fist gathers it back.</p>
+                <div class="ctl" style="margin-top:12px">
+                  <div class="ctl-head"><label for="handStrength">Strength</label><span class="val" id="handStrengthVal">0.50</span></div>
+                  <input type="range" id="handStrength" min="0" max="1" step="0.02" value="0.5">
+                </div>
+                <p class="hint">Detection is skin tone plus movement, on a 160 x 120 copy of the frame. Nothing is uploaded and no frame is stored. If it picks the wrong thing, click it in the preview.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="group" style="--i:2" data-group="adjust">
+          <button type="button" class="group-head" aria-expanded="false" aria-controls="adjustBody">
+            <svg class="chev" width="9" height="9" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 1.5 7 5 3.5 8.5"/></svg>
+            <span>Adjust</span>
+          </button>
+          <div class="collapse" id="adjustBody">
+            <div class="collapse-inner">
+              <div class="group-body">
+                <div class="seg" id="shapeSeg" role="group" aria-label="Shape type">
+                  <button type="button" data-shape="circle" class="active">Circle</button>
+                  <button type="button" data-shape="square">Square</button>
+                  <button type="button" data-shape="ascii">ASCII</button>
+                </div>
+                <div style="height:14px"></div>
+                <div class="ctl" id="rotRow">
+                  <div class="ctl-head"><label for="rotJitter">Rotation</label><span class="val" id="rotJitterVal">60°</span></div>
+                  <input type="range" id="rotJitter" min="0" max="180" step="5" value="60">
+                </div>
+                <div class="ctl" id="brickRow" hidden>
+                  <div class="ctl-head"><label for="brickBars">Stack density</label><span class="val" id="brickBarsVal">5</span></div>
+                  <input type="range" id="brickBars" min="2" max="10" step="1" value="5">
                 </div>
                 <div class="ctl">
-                  <div class="ctl-head"><label for="handReach">Reach</label><span class="val" id="handReachVal">0.30</span></div>
-                  <input type="range" id="handReach" min="0.08" max="0.7" step="0.01" value="0.3">
+                  <div class="ctl-head"><label for="density">Density</label><span class="val" id="densityVal">2920</span></div>
+                  <input type="range" id="density" min="0" max="1" step="0.01" value="0.46">
                 </div>
                 <div class="ctl">
-                  <div class="ctl-head"><label for="handForce">Force</label><span class="val" id="handForceVal">1.00</span></div>
-                  <input type="range" id="handForce" min="0.1" max="2.5" step="0.05" value="1">
+                  <div class="ctl-head"><label for="grain">Grain</label><span class="val" id="grainVal">15</span></div>
+                  <input type="range" id="grain" min="0" max="1" step="0.01" value="0.5">
                 </div>
                 <div class="ctl">
-                  <div class="ctl-head"><label for="handReturn">Return</label><span class="val" id="handReturnVal">1.00</span></div>
-                  <input type="range" id="handReturn" min="0.2" max="3" step="0.05" value="1">
+                  <div class="ctl-head"><label for="liveliness">Liveliness</label><span class="val" id="livelinessVal">0.46</span></div>
+                  <input type="range" id="liveliness" min="0" max="1" step="0.01" value="0.46">
                 </div>
-                <div class="ctl">
-                  <div class="ctl-head"><label for="handGrip">Fist sensitivity</label><span class="val" id="handGripVal">0.50</span></div>
-                  <input type="range" id="handGrip" min="0" max="1" step="0.02" value="0.5">
+                <div class="ctl collapse" id="tempoRow">
+                  <div class="ctl-head"><label for="tempo">Tempo</label><span class="val" id="tempoVal">1.8s</span></div>
+                  <input type="range" id="tempo" min="0" max="1" step="0.01" value="0.33">
                 </div>
-                <div class="quick-row">
-                  <label>Ring</label>
-                  <div class="seg seg-small" id="handRingSeg" role="group" aria-label="Hand ring overlay">
-                    <button type="button" data-ring="on">Show</button>
-                    <button type="button" data-ring="off" class="active">Hide</button>
+                <div class="ctl collapse" id="spreadRow">
+                  <div class="ctl-head"><label for="scatterRange">Spread</label><span class="val" id="scatterRangeVal">0.27</span></div>
+                  <input type="range" id="scatterRange" min="0" max="0.8" step="0.01" value="0.27">
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="group" style="--i:3" data-group="more">
+          <button type="button" class="group-head" aria-expanded="false" aria-controls="moreBody">
+            <svg class="chev" width="9" height="9" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 1.5 7 5 3.5 8.5"/></svg>
+            <span>More</span>
+          </button>
+          <div class="collapse" id="moreBody">
+            <div class="collapse-inner">
+              <div class="group-body">
+                <div class="quick-row" style="margin-bottom:14px">
+                  <label for="seedInput">Seed</label>
+                  <input class="text-field seed-field" id="seedInput" inputmode="numeric" autocomplete="off" spellcheck="false" value="88172645" aria-label="Random seed, press Enter to apply" title="Seed (Up / Down to step)" />
+                  <button class="btn btn-ghost btn-compact" id="reseedBtn" title="New random seed">
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <path d="M10.8 6a4.8 4.8 0 1 1-1.4-3.4"/><path d="M10.9 .9v2.2H8.7"/>
+                    </svg>
+                    Reseed
+                  </button>
+                </div>
+                <div class="collapse" id="seqRow">
+                  <div class="collapse-inner">
+                    <div class="ctl">
+                      <div class="ctl-head"><label for="seqInput">Sequence</label><span class="val">One phrase per line</span></div>
+                      <textarea class="text-field" id="seqInput" rows="3" spellcheck="false" aria-label="Sequence, one phrase per line">A
+B
+C</textarea>
+                    </div>
                   </div>
                 </div>
-                <p class="hint">Detection is skin tone plus movement, computed here on a 160 x 120 copy of the frame. Nothing is uploaded and no frame is stored. Bright, even light and a plain background read best; wave to be picked up again after holding still.</p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section class="group" style="--i:5" data-group="colors">
-          <button type="button" class="group-head" aria-expanded="false" aria-controls="colorsBody">
-            <svg class="chev" width="9" height="9" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 1.5 7 5 3.5 8.5"/></svg>
-            <span>Colors</span>
-          </button>
-          <div class="collapse" id="colorsBody">
-            <div class="collapse-inner">
-              <div class="group-body">
-                <div class="seg seg-small" id="paletteSeg" role="group" aria-label="Palette preset">
-                  <button type="button" data-palette="classic" class="active">Classic</button>
-                  <button type="button" data-palette="morandi">Morandi</button>
+                <div class="sub-head">Particles</div>
+                <div class="ctl">
+                  <div class="ctl-head"><label for="minSize">Min size</label><span class="val" id="minSizeVal">1</span></div>
+                  <input type="range" id="minSize" min="0.5" max="20" step="0.5" value="1">
                 </div>
-                <div class="swatches" id="swatches" style="margin-top:12px"></div>
-                <p class="hint">Click a dot to edit its color and weight. The corner x removes it.</p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section class="group" style="--i:5" data-group="background">
-          <button type="button" class="group-head" aria-expanded="false" aria-controls="backgroundBody">
-            <svg class="chev" width="9" height="9" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 1.5 7 5 3.5 8.5"/></svg>
-            <span>Background</span>
-          </button>
-          <div class="collapse" id="backgroundBody">
-            <div class="collapse-inner">
-              <div class="group-body">
-                <div class="swatches" id="bgSwatches"></div>
+                <div class="ctl">
+                  <div class="ctl-head"><label for="maxSize">Max size</label><span class="val" id="maxSizeVal">15</span></div>
+                  <input type="range" id="maxSize" min="1" max="30" step="0.5" value="15">
+                </div>
+                <div class="ctl">
+                  <div class="ctl-head"><label for="edgeFeather">Edge feather</label><span class="val" id="edgeFeatherVal">6</span></div>
+                  <input type="range" id="edgeFeather" min="0" max="20" step="1" value="6">
+                </div>
+                <div class="ctl">
+                  <div class="ctl-head"><label for="minOpacity">Opacity</label><span class="val" id="minOpacityVal">0.90</span></div>
+                  <input type="range" id="minOpacity" min="0.1" max="1" step="0.05" value="0.9">
+                </div>
+                <div class="sub-head">Motion</div>
+                <div class="ctl">
+                  <div class="ctl-head"><label for="trembleAmp">Tremble amount</label><span class="val" id="trembleAmpVal">6.5</span></div>
+                  <input type="range" id="trembleAmp" min="0" max="20" step="0.5" value="6.5">
+                </div>
+                <div class="ctl">
+                  <div class="ctl-head"><label for="trembleSpeed">Tremble speed</label><span class="val" id="trembleSpeedVal">2.0</span></div>
+                  <input type="range" id="trembleSpeed" min="0.2" max="6" step="0.1" value="2">
+                </div>
+                <div class="ctl">
+                  <div class="ctl-head"><label for="breathAmp">Breathing</label><span class="val" id="breathAmpVal">0.36</span></div>
+                  <input type="range" id="breathAmp" min="0" max="1" step="0.02" value="0.36">
+                </div>
+                <div class="collapse" id="loopTimesRow">
+                  <div class="collapse-inner">
+                    <div class="ctl">
+                      <div class="ctl-head"><label for="holdTime">Hold</label><span class="val" id="holdTimeVal">1.8s</span></div>
+                      <input type="range" id="holdTime" min="0.2" max="5" step="0.1" value="1.8">
+                    </div>
+                    <div class="ctl">
+                      <div class="ctl-head"><label for="scatterTime">Scatter</label><span class="val" id="scatterTimeVal">1.1s</span></div>
+                      <input type="range" id="scatterTime" min="0.2" max="3" step="0.1" value="1.1">
+                    </div>
+                    <div class="ctl">
+                      <div class="ctl-head"><label for="reformTime">Reform</label><span class="val" id="reformTimeVal">1.1s</span></div>
+                      <input type="range" id="reformTime" min="0.2" max="3" step="0.1" value="1.1">
+                    </div>
+                  </div>
+                </div>
+                <div class="sub-head">Colours in this theme</div>
+                <div class="swatches" id="swatches"></div>
+                <p class="hint">Click a dot to change that colour or how often it appears. Picking a theme above replaces the whole set.</p>
+                <div class="sub-head">Background</div>
                 <div class="color-input-wrap">
                   <input type="color" id="bgColor" value="#d6cfc5" aria-label="Background color" />
                   <span class="hexlabel" id="bgColorVal">#D6CFC5</span>
@@ -1442,7 +1446,7 @@ C</textarea>
           trembleFreq: trembleFreq, tremblePhase: tremblePhase, breathPhase: breathPhase,
           glyph: glyph, bricks: bricks,
           floatU: r(), floatV: r(),
-          ox: 0, oy: 0, ovx: 0, ovy: 0,
+          ox: 0, oy: 0, ovx: 0, ovy: 0, hold: 0,
           baseX: W/2, baseY: H/2, fromX: 0, fromY: 0,
           toX: W/2, toY: H/2, scatterX: 0, scatterY: 0
         });
@@ -1475,10 +1479,11 @@ C</textarea>
     function fx(p){ var rg = cfg.scatterRange; return (-rg + p.floatU*(1+2*rg)) * W; }
     function fy(p){ var rg = cfg.scatterRange; return (-rg + p.floatV*(1+2*rg)) * H; }
 
+    var reveal = handMode && cfg.handEffect === "reveal";
     assignTargets(current);
     for(i0=0;i0<shapes.length;i0++){
       p0 = shapes[i0];
-      if(hover){ p0.baseX = fx(p0); p0.baseY = fy(p0); }
+      if(hover || reveal){ p0.baseX = fx(p0); p0.baseY = fy(p0); }
       else { p0.baseX = p0.toX; p0.baseY = p0.toY; }
     }
 
@@ -1560,14 +1565,29 @@ C</textarea>
     function update(dt){
       var i, p, e;
       if(handMode){
-        /* Every particle is a damped spring anchored to its glyph
-           position. An open palm adds an outward impulse, a fist adds
-           an inward one plus the hand's own velocity, so a closed hand
-           carries the cloud with it and opening releases it. */
+        /* Every particle is a damped spring anchored to its home. What
+           makes the gesture legible is p.hold: a latch that suspends
+           that spring where the hand has acted. Without it the spring
+           pulls a particle back the instant it is pushed, so a sweeping
+           palm opens a dent that closes as fast as it opens -- the
+           letter never actually comes apart.
+             scatter  home = the glyph. An open palm pushes particles
+                      out and raises hold, so they stay out; when the
+                      hand leaves, hold decays over reformTime and the
+                      letter falls back together.
+             reveal   home = the float field, and the glyph is what the
+                      hand uncovers: hold pulls a particle onto its
+                      glyph target and relaxes back afterwards.
+             magnet   the direct force field, no latch. */
+        var effect = cfg.handEffect || "scatter";
+        var isReveal = effect === "reveal", isMagnet = effect === "magnet";
         var reach = (cfg.handReach > 0 ? cfg.handReach : 0.3) * W;
         var force = cfg.handForce == null ? 1 : cfg.handForce;
         var ret = cfg.handReturn > 0 ? cfg.handReturn : 1;
         var K = 24 * ret, DAMP = 6.2 * Math.sqrt(ret);
+        /* hold only bleeds away once the hand is out of frame -- while
+           it is present the letter stays where the hand left it */
+        var relax = hand.active ? 1 : Math.pow(0.02, dt / Math.max(0.2, cfg.reformTime || 1.1));
         if(hand.active){
           var f = 1 - Math.pow(0.0012, dt);
           var nx = hand.sx + (hand.x - hand.sx) * f;
@@ -1579,19 +1599,26 @@ C</textarea>
         var open = hand.open, grip = 1 - open;
         var pushA = 3400 * force * open;
         var gripK = 52 * force * grip;
-        var gripD = 9 * grip, carry = 2.4 * grip;
+        var gripD = 9 * grip, carry = 4.2 * grip;
         var hx = hand.sx, hy = hand.sy, r2 = reach * reach;
-        var ax, ay, dx, dy, d, d2, fall;
+        var ax, ay, dx, dy, d, d2, fall, k, tox, toy;
         for(i=0;i<shapes.length;i++){
           p = shapes[i];
-          ax = -K * p.ox - DAMP * p.ovx;
-          ay = -K * p.oy - DAMP * p.ovy;
+          fall = 0;
           if(hand.active){
             dx = p.baseX + p.ox - hx; dy = p.baseY + p.oy - hy;
             d2 = dx*dx + dy*dy;
             if(d2 < r2){
               d = Math.sqrt(d2); if(d < 1) d = 1;
               fall = 1 - d/reach; fall *= fall;
+            }
+          }
+
+          if(isMagnet){
+            /* the plain force field: no latch, springs straight home */
+            ax = -K * p.ox - DAMP * p.ovx;
+            ay = -K * p.oy - DAMP * p.ovy;
+            if(fall > 0){
               if(pushA){
                 e = pushA * fall / d;
                 ax += dx * e; ay += dy * e;
@@ -1601,6 +1628,35 @@ C</textarea>
                 ax -= dx * e + p.ovx * gripD * fall - hand.vx * carry * fall;
                 ay -= dy * e + p.ovy * gripD * fall - hand.vy * carry * fall;
               }
+            }
+          } else {
+            /* Scatter and Reveal are the same mechanism pointing
+               opposite ways. Each particle has a home and an away:
+               scatter homes on the glyph and flees to the float field,
+               reveal floats and is drawn onto the glyph. hold is how
+               far along that journey the hand has pushed it, which is
+               why the letter genuinely comes apart instead of denting. */
+            if(fall > 0){
+              e = isReveal ? fall * (0.4 + open) * 7 : fall * open * 11;
+              p.hold += (1 - p.hold) * Math.min(1, e * dt);
+              /* in scatter a fist takes territory back */
+              if(!isReveal && grip > 0.5) p.hold *= Math.pow(0.04, dt);
+            }
+            p.hold *= relax;
+            tox = ((isReveal ? p.toX : fx(p)) - p.baseX) * p.hold;
+            toy = ((isReveal ? p.toY : fy(p)) - p.baseY) * p.hold;
+            ax = K * (tox - p.ox) - DAMP * p.ovx;
+            ay = K * (toy - p.oy) - DAMP * p.ovy;
+            /* the palm still gives a kinetic shove on top, so the
+               motion reads as being pushed rather than dissolving */
+            if(fall > 0 && !isReveal && pushA){
+              e = pushA * 0.45 * fall / d;
+              ax += dx * e; ay += dy * e;
+            }
+            if(fall > 0 && gripK){
+              e = gripK * fall;
+              ax -= dx * e - hand.vx * carry * fall;
+              ay -= dy * e - hand.vy * carry * fall;
             }
           }
           p.ovx += ax * dt; p.ovy += ay * dt;
@@ -1818,8 +1874,8 @@ C</textarea>
         assignTargets(current);
         for(var i=0;i<shapes.length;i++){
           var p = shapes[i];
-          p.ox = p.oy = p.ovx = p.ovy = 0;
-          if(hover){ p.baseX = fx(p); p.baseY = fy(p); }
+          p.ox = p.oy = p.ovx = p.ovy = p.hold = 0;
+          if(hover || reveal){ p.baseX = fx(p); p.baseY = fy(p); }
           else { p.baseX = p.toX; p.baseY = p.toY; }
         }
       }
@@ -1871,12 +1927,15 @@ C</textarea>
     var skin = new Uint8Array(N), mask = new Uint8Array(N);
     var act = new Float32Array(N);
     var labels = new Int32Array(N), stack = new Int32Array(N);
+    var holeBuf = new Uint8Array(1), holeStack = new Int32Array(N);
     var radHist = new Float64Array(36);
 
     var stream = null, raf = null, running = false, hasPrev = false;
     var lastMs = 0, seenAt = 0, clock = 0;
     var sx = 0.5, sy = 0.5, sOpen = 1, sRad = 0.12;
     var tracked = false, gripped = false;
+    var stale = 0;              /* frames the lock has sat still */
+    var forceX = -1, forceY = -1;   /* a blob the user pointed at */
     var result = { active:false, x:0.5, y:0.5, open:1, grab:false, radius:0.12,
                    spread:0, area:0 };
 
@@ -1965,21 +2024,91 @@ C</textarea>
       return comps;
     }
 
-    /* a blob is a hand candidate when it moves; one already being
-       tracked only has to stay roughly where it was */
+    /* Choosing the hand over the face.
+       The old scoring was area * (0.4 + motion), which a face wins on
+       size alone -- it is normally the largest skin blob in frame and
+       the 0.4 floor meant sitting still cost it almost nothing.
+       What replaces it:
+         - the hole test above, which is the cue that actually names a
+           face. Measured on a synthetic head: 0.044 of a face's area
+           is enclosed non-skin, against 0.000 for a hand.
+         - sqrt(area), so a big blob cannot brute-force a small one.
+         - a sticky lock that goes stale if the held blob stops
+           moving, letting a waving hand take over from a still face.
+       Interior gradient was tried here too and dropped: it measured
+       15.3 on the face and 17.8 on the hand, because finger edges beat
+       facial features. It would only have penalised real hands. */
     function pick(comps){
-      var best = null, bestScore = 0, i, c, near, need, score;
+      var best = null, bestScore = 0, i, c, near, score;
+      /* an explicit tap in the preview outranks every heuristic */
+      if(forceX >= 0){
+        for(i=0;i<comps.length;i++){
+          c = comps[i];
+          if(forceX >= c.minX-2 && forceX <= c.maxX+2 &&
+             forceY >= c.minY-2 && forceY <= c.maxY+2 &&
+             labels[Math.round(forceY)*DW + Math.round(forceX)] === c.lab){
+            forceX = forceY = -1;
+            return c;
+          }
+        }
+        forceX = forceY = -1;
+      }
       for(i=0;i<comps.length;i++){
         c = comps[i];
+        if(c.holes === undefined) c.holes = holeFrac(c);
+        if(c.holes > 0.012) continue;             /* eyes and a mouth punch holes; a hand has none */
         near = tracked &&
                Math.abs(c.cx/DW - sx) < 0.24 &&
                Math.abs(c.cy/DH - sy) < 0.28;
-        need = near ? 0.05 : 0.22;
-        if(c.act < need) continue;
-        score = c.area * (0.4 + c.act) * (near ? 1.7 : 1);
+        if(c.act < (near ? 0.04 : 0.20)) continue;
+        score = Math.sqrt(c.area) * (0.3 + c.act) * (near ? 2 : 1);
         if(score > bestScore){ bestScore = score; best = c; }
       }
       return best;
+    }
+
+    /* The decisive face cue. Eyes, nostrils and a mouth are not skin,
+       so they punch holes clean through the middle of a face blob. A
+       hand has none: the gaps between fingers open to the outside and
+       are not enclosed. Flood the blob's bounding box inward from its
+       border over everything that is not this blob; whatever is never
+       reached is a hole. */
+    function holeFrac(c){
+      var x0 = c.minX - 1, y0 = c.minY - 1;
+      var w = c.maxX - c.minX + 3, h = c.maxY - c.minY + 3;
+      var n = w * h, i, x, y, q, qx, qy, sp = 0;
+      if(holeBuf.length < n) holeBuf = new Uint8Array(n);
+      else holeBuf.fill(0, 0, n);
+      function outside(lx, ly){
+        return lx < 0 || ly < 0 || lx >= w || ly >= h;
+      }
+      function isBlob(lx, ly){
+        var gx = x0 + lx, gy = y0 + ly;
+        if(gx < 0 || gy < 0 || gx >= DW || gy >= DH) return false;
+        return labels[gy * DW + gx] === c.lab;
+      }
+      for(x=0;x<w;x++){
+        for(y=0;y<h;y+= (x === 0 || x === w-1) ? 1 : (h-1 || 1)){
+          i = y * w + x;
+          if(!holeBuf[i] && !isBlob(x, y)){ holeBuf[i] = 1; holeStack[sp++] = i; }
+          if(h === 1) break;
+        }
+      }
+      while(sp){
+        q = holeStack[--sp];
+        qx = q % w; qy = (q - qx) / w;
+        if(qx > 0   && !holeBuf[q-1] && !isBlob(qx-1, qy)){ holeBuf[q-1] = 1; holeStack[sp++] = q-1; }
+        if(qx < w-1 && !holeBuf[q+1] && !isBlob(qx+1, qy)){ holeBuf[q+1] = 1; holeStack[sp++] = q+1; }
+        if(qy > 0   && !holeBuf[q-w] && !isBlob(qx, qy-1)){ holeBuf[q-w] = 1; holeStack[sp++] = q-w; }
+        if(qy < h-1 && !holeBuf[q+w] && !isBlob(qx, qy+1)){ holeBuf[q+w] = 1; holeStack[sp++] = q+w; }
+      }
+      var holes = 0;
+      for(i=0;i<n;i++){
+        if(holeBuf[i]) continue;
+        x = i % w; y = (i - x) / w;
+        if(!isBlob(x, y)) holes++;
+      }
+      return holes / c.area;
     }
 
     /* r92 / r50 of the blob's radial profile: scale free, so it does
@@ -2010,22 +2139,18 @@ C</textarea>
       return r50 > 0.5 ? r92 / r50 : 1.35;
     }
 
-    function paintOverlay(best){
-      var px = ovData.data, i, j, on;
-      for(i=0;i<N;i++){
-        j = i*4;
-        on = best && labels[i] === best.lab;
-        if(on){ px[j] = 44; px[j+1] = 132; px[j+2] = 219; px[j+3] = 150; }
-        else if(mask[i]){ px[j] = 255; px[j+1] = 255; px[j+2] = 255; px[j+3] = 40; }
-        else { px[j+3] = 0; }
-      }
-      octx.putImageData(ovData, 0, 0);
+    /* The overlay used to flood the winning blob with blue, which is
+       how a tinted face ended up on screen. Nothing is painted over
+       the person any more -- the tracked hand gets a ring in
+       drawPreview() and that is the whole marker. */
+    function paintOverlay(){
+      octx.clearRect(0, 0, DW, DH);
     }
 
     function detect(dt){
       segment(dt);
       var best = pick(components());
-      paintOverlay(best);
+      paintOverlay();
       if(best){
         var ratio = spread(best);
         result.spread = ratio;
@@ -2044,11 +2169,13 @@ C</textarea>
         sRad += (Math.sqrt(best.area/Math.PI)/DW - sRad) * 0.2;
         if(!gripped && sOpen < 0.35) gripped = true;
         else if(gripped && sOpen > 0.6) gripped = false;
-        tracked = true;
-        seenAt = clock;
+        stale = best.act < 0.08 ? stale + 1 : 0;
+        if(stale > 90){ stale = 0; tracked = false; gripped = false; }
+        else { tracked = true; seenAt = clock; }
       } else if(tracked && clock - seenAt > LOST_GRACE){
         tracked = false;
         gripped = false;
+        stale = 0;
       }
       result.active = tracked;
       result.x = sx; result.y = sy; result.radius = sRad;
@@ -2120,18 +2247,29 @@ C</textarea>
         ctx2.drawImage(video, rect.x, rect.y, rect.w, rect.h, 0, 0, w, h);
         ctx2.restore();
       }
-      ctx2.globalAlpha = 0.85;
-      ctx2.drawImage(overlay, 0, 0, w, h);
-      ctx2.globalAlpha = 1;
       if(result.active){
+        /* one ring on the hand, nothing painted over the person */
         var cx = result.x * w, cy = result.y * h;
-        var rr = Math.max(10, result.radius * w * (result.grab ? 1.1 : 1.7));
-        ctx2.lineWidth = 2;
-        ctx2.strokeStyle = result.grab ? "rgba(255,255,255,.95)" : "rgba(44,132,219,.95)";
+        var rr = Math.max(11, result.radius * w * (result.grab ? 1.15 : 1.75));
+        ctx2.lineWidth = 2.5;
+        ctx2.strokeStyle = "rgba(255,255,255,.92)";
         ctx2.beginPath();
         ctx2.arc(cx, cy, rr, 0, Math.PI*2);
         ctx2.stroke();
+        ctx2.lineWidth = 1;
+        ctx2.strokeStyle = "rgba(20,20,19,.5)";
+        ctx2.beginPath();
+        ctx2.arc(cx, cy, rr + 1.6, 0, Math.PI*2);
+        ctx2.stroke();
       }
+    }
+
+    /* manual override: normalised coords from a tap on the preview */
+    function pickAt(nx, ny){
+      forceX = clamp01(nx) * DW;
+      forceY = clamp01(ny) * DH;
+      tracked = false;
+      stale = 0;
     }
 
     return {
@@ -2140,6 +2278,7 @@ C</textarea>
       video: video,
       result: result,
       drawPreview: drawPreview,
+      pickAt: pickAt,
       isRunning: function(){ return running; }
     };
   }
@@ -2148,8 +2287,14 @@ C</textarea>
   /* ============================================================
      Palettes, background presets, looks
   ============================================================ */
-  var PALETTES = {
-    classic: [
+  /* A theme is a palette AND the ground it was designed against.
+     They used to be independent, which is why a dark background left
+     the navy and brown unreadable and why nothing adapted when you
+     switched Looks. Choosing them as a pair is the whole fix.
+     Classic keeps its exact nine weighted colours and #d6cfc5 -- it is
+     the tool's signature and PRODUCT.md protects it. */
+  var THEMES = [
+    { id:"classic", name:"Classic", background:"#d6cfc5", colors:[
       { name:"orange",   hex:"#d97a3f", w:3 },
       { name:"yellow",   hex:"#e8b54a", w:2 },
       { name:"navy",     hex:"#33455c", w:3 },
@@ -2159,8 +2304,8 @@ C</textarea>
       { name:"brown",    hex:"#7a5138", w:2 },
       { name:"cream",    hex:"#efe3c8", w:3 },
       { name:"teal",     hex:"#3f8f8a", w:2 }
-    ],
-    morandi: [
+    ]},
+    { id:"morandi", name:"Morandi", background:"#d8cfc9", colors:[
       { name:"rose",   hex:"#c5a3a3", w:3 },
       { name:"sage",   hex:"#a3b5a6", w:3 },
       { name:"slate",  hex:"#9dabb8", w:2 },
@@ -2170,36 +2315,107 @@ C</textarea>
       { name:"moss",   hex:"#9ca88f", w:2 },
       { name:"greige", hex:"#b8afa6", w:2 },
       { name:"dusk",   hex:"#b98e8e", w:2 }
-    ]
-  };
-
-  var BG_PRESETS = ["#d6cfc5","#f4f1ec","#ccd2d6","#cfd4cb","#d8cfc9","#2a2a2c"];
+    ]},
+    /* the dark ground needs its own, lighter set -- this is the pairing
+       that was missing when Numerals put the old palette on #2a2a2c */
+    { id:"ink", name:"Ink", background:"#22232a", colors:[
+      { name:"chalk",   hex:"#ece5d8", w:3 },
+      { name:"apricot", hex:"#e8a06a", w:3 },
+      { name:"lemon",   hex:"#e6c766", w:2 },
+      { name:"sky",     hex:"#8fb4d9", w:2 },
+      { name:"mint",    hex:"#7fbfae", w:2 },
+      { name:"blush",   hex:"#e096a4", w:2 },
+      { name:"lilac",   hex:"#a99ad6", w:2 },
+      { name:"sand",    hex:"#c9b391", w:2 },
+      { name:"sea",     hex:"#5f9ea3", w:2 }
+    ]},
+    { id:"chalk", name:"Chalk", background:"#f2efe7", colors:[
+      { name:"graphite", hex:"#5c5a54", w:3 },
+      { name:"stone",    hex:"#9a968c", w:3 },
+      { name:"rust",     hex:"#b5714b", w:2 },
+      { name:"ochre",    hex:"#c9a24b", w:2 },
+      { name:"pine",     hex:"#5c7a63", w:2 },
+      { name:"denim",    hex:"#6a7f9c", w:2 },
+      { name:"plum",     hex:"#8d6a80", w:2 },
+      { name:"bone",     hex:"#ded7c7", w:3 },
+      { name:"brick",    hex:"#a35744", w:2 }
+    ]},
+    { id:"ember", name:"Ember", background:"#e9ddcd", colors:[
+      { name:"paprika", hex:"#c25a34", w:3 },
+      { name:"amber",   hex:"#dd9440", w:3 },
+      { name:"honey",   hex:"#e5bd67", w:2 },
+      { name:"cocoa",   hex:"#79492f", w:2 },
+      { name:"clay",    hex:"#b8785c", w:2 },
+      { name:"olive",   hex:"#8a8449", w:2 },
+      { name:"rose",    hex:"#c98a86", w:2 },
+      { name:"linen",   hex:"#f0e3cd", w:3 },
+      { name:"umber",   hex:"#8f5f3c", w:2 }
+    ]},
+    { id:"sea", name:"Sea", background:"#ccd6d8", colors:[
+      { name:"deep",    hex:"#2f5d66", w:3 },
+      { name:"teal",    hex:"#3d8b8b", w:3 },
+      { name:"aqua",    hex:"#7cb3b0", w:2 },
+      { name:"slate",   hex:"#6a8199", w:2 },
+      { name:"sand",    hex:"#d7c9a8", w:2 },
+      { name:"coral",   hex:"#d98873", w:2 },
+      { name:"moss",    hex:"#7d9a76", w:2 },
+      { name:"shell",   hex:"#eef0e9", w:3 },
+      { name:"indigo",  hex:"#40536f", w:2 }
+    ]},
+    { id:"moss", name:"Moss", background:"#d2d6cb", colors:[
+      { name:"fern",    hex:"#5f7a4e", w:3 },
+      { name:"olive",   hex:"#8a9455", w:3 },
+      { name:"sage",    hex:"#a6b596", w:2 },
+      { name:"bark",    hex:"#6f5942", w:2 },
+      { name:"wheat",   hex:"#d3c391", w:2 },
+      { name:"rust",    hex:"#b06e46", w:2 },
+      { name:"slate",   hex:"#71858c", w:2 },
+      { name:"chalk",   hex:"#eceee5", w:3 },
+      { name:"plum",    hex:"#8a6478", w:2 }
+    ]}
+  ];
+  /* a chip's label sits on that theme's own ground, so its ink has to
+     come from the ground rather than from the page theme */
+  function readableInk(hex){
+    var h = String(hex || "").replace("#","");
+    if(h.length === 3) h = h[0]+h[0]+h[1]+h[1]+h[2]+h[2];
+    var n = parseInt(h, 16);
+    if(h.length !== 6 || isNaN(n)) return "#141413";
+    var lum = (0.299*((n>>16)&255) + 0.587*((n>>8)&255) + 0.114*(n&255)) / 255;
+    return lum > 0.55 ? "#141413" : "#faf9f5";
+  }
+  function themeById(id){
+    for(var i=0;i<THEMES.length;i++) if(THEMES[i].id === id) return THEMES[i];
+    return THEMES[0];
+  }
 
   var LOOKS = [
     { name:"Confetti", s:{ shape:"circle", minSize:0.5, maxSize:6, rotationJitter:60, brickBars:5,
         count:5200, edgeFeather:8, minOpacity:0.85, trembleAmp:5, trembleSpeed:2.2, breathAmp:0.3,
         holdTime:1.8, scatterTime:1.1, reformTime:1.1, scatterRange:0.27,
-        palette:"classic", background:"#d6cfc5" } },
+        theme:"classic" } },
     { name:"Brickwork", s:{ shape:"square", minSize:6, maxSize:16, rotationJitter:60, brickBars:6,
         count:1600, edgeFeather:4, minOpacity:1, trembleAmp:3.5, trembleSpeed:1.4, breathAmp:0.2,
         holdTime:2.2, scatterTime:1.2, reformTime:1.2, scatterRange:0.2,
-        palette:"classic", background:"#f4f1ec" } },
+        theme:"classic" } },
     { name:"Numerals", s:{ shape:"ascii", minSize:2, maxSize:12, rotationJitter:35, brickBars:5,
         count:3400, edgeFeather:6, minOpacity:0.9, trembleAmp:7, trembleSpeed:2.6, breathAmp:0.4,
         holdTime:1.6, scatterTime:1, reformTime:1.1, scatterRange:0.34,
-        palette:"classic", background:"#2a2a2c" } },
+        theme:"ink" } },
     { name:"Morandi mist", s:{ shape:"circle", minSize:2, maxSize:18, rotationJitter:60, brickBars:5,
         count:2200, edgeFeather:12, minOpacity:0.7, trembleAmp:8, trembleSpeed:1.2, breathAmp:0.5,
         holdTime:2, scatterTime:1.4, reformTime:1.4, scatterRange:0.3,
-        palette:"morandi", background:"#d8cfc9" } },
+        theme:"morandi" } },
     { name:"Coarse grain", s:{ shape:"circle", minSize:8, maxSize:22, rotationJitter:60, brickBars:5,
         count:900, edgeFeather:3, minOpacity:1, trembleAmp:4, trembleSpeed:1.8, breathAmp:0.25,
         holdTime:1.8, scatterTime:1.1, reformTime:1.1, scatterRange:0.24,
-        palette:"morandi", background:"#ccd2d6" } }
+        theme:"sea" } }
   ];
 
   var LETTER_CYCLE = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-  var LS_KEY = "lsg.groups.v1";
+  /* v2: the groups were renamed when the panel was restructured, so a
+     stored v1 map would open sections that no longer exist */
+  var LS_KEY = "lsg.groups.v2";
 
   /* ============================================================
      State
@@ -2219,13 +2435,26 @@ C</textarea>
     count:2920, edgeFeather:6, minOpacity:0.9,
     trembleAmp:6.5, trembleSpeed:2, breathAmp:0.36,
     holdTime:1.8, scatterTime:1.1, reformTime:1.1, scatterRange:0.27,
-    handReach:0.3, handForce:1, handReturn:1, handGrip:0.5, handRing:false,
+    handEffect:"scatter", handStrength:0.5, handRing:false,
+    /* derived from handStrength; kept in state so the exported cfg is
+       still a complete, tweakable parameter set */
+    handReach:0.37, handForce:1.3, handReturn:1, handGrip:0.5,
     background:"#d6cfc5",
-    colors: clonePalette(PALETTES.classic),
-    palette:"classic",
+    colors: clonePalette(THEMES[0].colors),
+    theme:"classic",
+    look:"",
     seed:88172645,
     paused:true
   };
+
+  /* one slider, three constants: reach and force scale together
+     because "stronger" means both a wider and a harder push */
+  function applyHandStrength(){
+    var t = S.handStrength;
+    S.handReach  = +(0.24 + 0.26 * t).toFixed(3);
+    S.handForce  = +(0.55 + 1.7 * t).toFixed(3);
+    S.handReturn = 1;
+  }
 
   var canvas = document.getElementById("c");
   var engine = null;
@@ -2243,6 +2472,7 @@ C</textarea>
       scatterRange:S.scatterRange,
       handReach:S.handReach, handForce:S.handForce,
       handReturn:S.handReturn, handRing:S.handRing,
+      handEffect:S.handEffect,
       background:S.background,
       colors: clonePalette(S.colors),
       seed:S.seed
@@ -2269,6 +2499,7 @@ C</textarea>
     liveCfg.handReach = S.handReach;
     liveCfg.handForce = S.handForce;
     liveCfg.handReturn = S.handReturn;
+    liveCfg.handEffect = S.handEffect;
     liveCfg.handRing = S.handRing;
     liveCfg.background = S.background;
     liveCfg.shape = S.shape;
@@ -2289,9 +2520,10 @@ C</textarea>
       minOpacity:S.minOpacity, trembleAmp:S.trembleAmp, trembleSpeed:S.trembleSpeed,
       breathAmp:S.breathAmp, holdTime:S.holdTime, scatterTime:S.scatterTime,
       reformTime:S.reformTime, scatterRange:S.scatterRange,
+      handEffect:S.handEffect, handStrength:S.handStrength,
       handReach:S.handReach, handForce:S.handForce, handReturn:S.handReturn,
       handGrip:S.handGrip, handRing:S.handRing,
-      background:S.background, colors:S.colors, palette:S.palette, seed:S.seed
+      background:S.background, colors:S.colors, theme:S.theme, seed:S.seed
     });
   }
   function commit(){
@@ -2419,10 +2651,8 @@ C</textarea>
     { id:"scatterTime",  key:"scatterTime",    val:"scatterTimeVal",  structural:false, fmt:function(v){ return v.toFixed(1) + "s"; } },
     { id:"reformTime",   key:"reformTime",     val:"reformTimeVal",   structural:false, fmt:function(v){ return v.toFixed(1) + "s"; } },
     { id:"scatterRange", key:"scatterRange",   val:"scatterRangeVal", structural:false, fmt:function(v){ return v.toFixed(2); } },
-    { id:"handReach",    key:"handReach",      val:"handReachVal",    structural:false, fmt:function(v){ return v.toFixed(2); } },
-    { id:"handForce",    key:"handForce",      val:"handForceVal",    structural:false, fmt:function(v){ return v.toFixed(2); } },
-    { id:"handReturn",   key:"handReturn",     val:"handReturnVal",   structural:false, fmt:function(v){ return v.toFixed(2); } },
-    { id:"handGrip",     key:"handGrip",       val:"handGripVal",     structural:false, fmt:function(v){ return v.toFixed(2); } }
+    { id:"handStrength", key:"handStrength",   val:"handStrengthVal", structural:false, fmt:function(v){ return v.toFixed(2); },
+      after:function(){ applyHandStrength(); } }
   ];
 
   function flashVal(el){
@@ -2438,6 +2668,69 @@ C</textarea>
     el.textContent = c.fmt ? c.fmt(v) : v;
   }
 
+  /* One slider, several parameters. Each entry reads a position back
+     out of the raw state (so a Look or a More slider still shows up
+     here correctly) and writes the whole group on the way in. The raw
+     keys are untouched, so the exported cfg stays complete. */
+  var DERIVED = [
+    { id:"density", val:"densityVal", structural:true,
+      read:function(){ return (S.count - 300) / 5700; },
+      write:function(t){ S.count = Math.round(300 + t * 5700); },
+      text:function(){ return S.count; } },
+    { id:"grain", val:"grainVal", structural:true,
+      read:function(){ return (S.maxSize - 5) / 20; },
+      write:function(t){
+        S.maxSize = +(5 + t * 20).toFixed(1);
+        S.minSize = +(0.5 + t * 1.5).toFixed(1);
+      },
+      text:function(){ return S.maxSize; } },
+    { id:"liveliness", val:"livelinessVal", structural:false,
+      read:function(){ return S.trembleAmp / 14; },
+      write:function(t){
+        S.trembleAmp = +(t * 14).toFixed(1);
+        S.trembleSpeed = +(0.6 + t * 2.8).toFixed(1);
+        S.breathAmp = +(t * 0.6).toFixed(2);
+      },
+      text:function(){ return S.trembleAmp.toFixed(1); } },
+    { id:"tempo", val:"tempoVal", structural:false,
+      read:function(){ return (S.holdTime - 0.2) / 4.8; },
+      write:function(t){
+        S.holdTime = +(0.2 + t * 4.8).toFixed(1);
+        S.scatterTime = +(0.4 + t * 1.6).toFixed(1);
+        S.reformTime = +(0.4 + t * 1.6).toFixed(1);
+      },
+      text:function(){ return S.holdTime.toFixed(1) + "s"; } }
+  ];
+  function writeDerivedVal(d){
+    var el = document.getElementById(d.val);
+    if(el) el.textContent = d.text();
+  }
+  function syncDerived(){
+    DERIVED.forEach(function(d){
+      var el = document.getElementById(d.id);
+      if(el) el.value = clamp01n(d.read());
+      writeDerivedVal(d);
+    });
+  }
+  function clamp01n(v){ return v < 0 ? 0 : (v > 1 ? 1 : v); }
+  function initDerived(){
+    DERIVED.forEach(function(d){
+      var el = document.getElementById(d.id);
+      if(!el) return;
+      el.addEventListener("input", function(){
+        d.write(parseFloat(el.value));
+        writeDerivedVal(d);
+        flashVal(document.getElementById(d.val));
+        clearLook();
+        if(!d.structural) pushLive();
+      });
+      el.addEventListener("change", function(){
+        if(d.structural) rebuild();
+        commit();
+      });
+    });
+  }
+
   function initSliders(){
     CONTROLS.forEach(function(c){
       var el = document.getElementById(c.id);
@@ -2445,14 +2738,14 @@ C</textarea>
       el.addEventListener("input", function(){
         var v = c.int ? parseInt(el.value,10) : parseFloat(el.value);
         S[c.key] = v;
+        if(c.after) c.after();
         writeVal(c);
+        syncDerived();
+        clearLook();
         flashVal(document.getElementById(c.val));
-        if(c.structural){
-          /* structural params only take effect on release, so dragging
-             stays smooth; motion params apply live */
-          if(c.key === "edgeFeather" || c.key === "minOpacity") return;
-          return;
-        }
+        /* structural params only take effect on release, so dragging
+           stays smooth; motion params apply live */
+        if(c.structural) return;
         pushLive();
       });
       el.addEventListener("change", function(){
@@ -2587,53 +2880,74 @@ C</textarea>
   });
 
   /* palette presets */
-  var paletteSeg = document.getElementById("paletteSeg");
-  paletteSeg.addEventListener("click", function(e){
-    var btn = e.target.closest("button[data-palette]");
-    if(!btn) return;
-    setSegActive(paletteSeg, btn);
-    S.palette = btn.getAttribute("data-palette");
-    S.colors = clonePalette(PALETTES[S.palette]);
+  var themeRow = document.getElementById("themeRow");
+  function applyTheme(id, record){
+    var th = themeById(id);
+    S.theme = th.id;
+    S.colors = clonePalette(th.colors);
+    S.background = th.background;
     closeSwatchPop();
+    renderThemes();
     renderSwatches();
+    syncBackground();
+    paintCoachDots();
     rebuild();
-    commit();
-  });
+    if(record !== false) commit();
+  }
+  /* the gesture diagram is made of the same material as the canvas,
+     so its dots have to follow the theme rather than sit on the
+     Classic hexes they were authored with */
+  function paintCoachDots(){
+    var cols = S.colors.slice().sort(function(a, c){ return c.w - a.w; });
+    var dots = document.querySelectorAll("#coach .coach-dot");
+    for(var i=0;i<dots.length;i++){
+      dots[i].style.background = cols[i % cols.length].hex;
+    }
+  }
+  function renderThemes(){
+    themeRow.innerHTML = "";
+    THEMES.forEach(function(th){
+      var b = document.createElement("button");
+      b.type = "button";
+      b.className = "theme-chip" + (th.id === S.theme ? " active" : "");
+      b.title = th.name;
+      b.setAttribute("aria-label", "Colour theme " + th.name);
+      b.setAttribute("aria-pressed", th.id === S.theme ? "true" : "false");
+      b.style.background = th.background;
+      var strip = document.createElement("span");
+      strip.className = "theme-strip";
+      /* the five heaviest colours, so the chip previews what you get */
+      th.colors.slice().sort(function(a,c){ return c.w - a.w; }).slice(0,5)
+        .forEach(function(c){
+          var d = document.createElement("i");
+          d.style.background = c.hex;
+          strip.appendChild(d);
+        });
+      b.appendChild(strip);
+      var nm = document.createElement("span");
+      nm.className = "theme-name";
+      nm.style.color = readableInk(th.background);
+      nm.textContent = th.name;
+      b.appendChild(nm);
+      b.addEventListener("click", function(){ applyTheme(th.id); });
+      themeRow.appendChild(b);
+    });
+  }
 
-  /* background presets */
-  var bgSwatchesEl = document.getElementById("bgSwatches");
+  /* Background. The preset row is gone: a theme now carries the ground
+     it was designed against, so the two can no longer drift apart. What
+     stays here is the custom picker, for when you want your own. */
   var bgColorEl = document.getElementById("bgColor");
   var bgColorVal = document.getElementById("bgColorVal");
 
-  function renderBgSwatches(){
-    bgSwatchesEl.innerHTML = "";
-    BG_PRESETS.forEach(function(hex){
-      var b = document.createElement("button");
-      b.type = "button";
-      b.className = "bg-swatch";
-      b.style.background = hex;
-      b.setAttribute("aria-label", "Background " + hex);
-      b.title = hex.toUpperCase();
-      if(hex.toLowerCase() === S.background.toLowerCase()) b.classList.add("selected");
-      b.addEventListener("click", function(){
-        S.background = hex;
-        syncBackground();
-        pushLive();
-        commit();
-      });
-      bgSwatchesEl.appendChild(b);
-    });
-  }
   function syncBackground(){
     bgColorEl.value = S.background;
     bgColorVal.textContent = S.background.toUpperCase();
-    Array.prototype.forEach.call(bgSwatchesEl.querySelectorAll(".bg-swatch"), function(b){
-      b.classList.toggle("selected", b.title.toLowerCase() === S.background.toLowerCase());
-    });
   }
   bgColorEl.addEventListener("input", function(){
     S.background = bgColorEl.value;
     syncBackground();
+    clearLook();
     pushLive();
   });
   bgColorEl.addEventListener("change", function(){ commit(); });
@@ -2645,25 +2959,39 @@ C</textarea>
   function renderLooks(){
     looksRow.innerHTML = "";
     LOOKS.forEach(function(look){
+      var th = themeById(look.s.theme);
       var chip = document.createElement("button");
       chip.type = "button";
-      chip.className = "look-chip";
-      chip.textContent = look.name;
-      chip.addEventListener("click", function(){
-        applyLook(look);
-        Array.prototype.forEach.call(looksRow.querySelectorAll(".look-chip"), function(c){
-          c.classList.remove("active");
-        });
-        chip.classList.add("active");
+      chip.className = "look-chip" + (look.name === S.look ? " active" : "");
+      chip.setAttribute("aria-pressed", look.name === S.look ? "true" : "false");
+      chip.title = look.name;
+      /* a Look is a whole design, so the chip shows its ground and the
+         shape of its particles rather than only its name */
+      var sw = document.createElement("span");
+      sw.className = "look-sw";
+      sw.style.background = th.background;
+      th.colors.slice(0, 3).forEach(function(c){
+        var d = document.createElement("i");
+        d.style.background = c.hex;
+        if(look.s.shape === "square") d.style.borderRadius = "1px";
+        sw.appendChild(d);
       });
+      chip.appendChild(sw);
+      var nm = document.createElement("span");
+      nm.textContent = look.name;
+      chip.appendChild(nm);
+      chip.addEventListener("click", function(){ applyLook(look); });
       looksRow.appendChild(chip);
     });
   }
+
   function applyLook(look){
+    S.look = look.name;
     Object.keys(look.s).forEach(function(k){
-      if(k === "palette"){
-        S.palette = look.s.palette;
-        S.colors = clonePalette(PALETTES[look.s.palette]);
+      if(k === "theme"){
+        S.theme = look.s.theme;
+        S.colors = clonePalette(themeById(look.s.theme).colors);
+        S.background = themeById(look.s.theme).background;
       } else {
         S[k] = look.s[k];
       }
@@ -2672,6 +3000,12 @@ C</textarea>
     syncAllControls();
     rebuild();
     commit();
+  }
+  /* any manual change means the result is no longer that preset */
+  function clearLook(){
+    if(!S.look) return;
+    S.look = "";
+    renderLooks();
   }
 
   /* ============================================================
@@ -2690,7 +3024,9 @@ C</textarea>
   var hoverHintWrap = document.getElementById("hoverHintWrap");
   var handHintWrap = document.getElementById("handHintWrap");
   var seqRow = document.getElementById("seqRow");
-  var holdRow = document.getElementById("holdRow");
+  var loopTimesRow = document.getElementById("loopTimesRow");
+  var tempoRow = document.getElementById("tempoRow");
+  var spreadRow = document.getElementById("spreadRow");
   var rotRow = document.getElementById("rotRow");
   var brickRow = document.getElementById("brickRow");
 
@@ -2744,8 +3080,11 @@ C</textarea>
     var hand = S.mode === "hand";
     hoverHintWrap.classList.toggle("collapsed", !hover);
     handHintWrap.classList.toggle("collapsed", !hand);
+    /* the loop timeline only means something in Loop */
     seqRow.classList.toggle("collapsed", hover || hand);
-    holdRow.classList.toggle("collapsed", hover || hand);
+    loopTimesRow.classList.toggle("collapsed", hover || hand);
+    tempoRow.classList.toggle("collapsed", hover || hand);
+    spreadRow.classList.toggle("collapsed", hand);
     playBtn.disabled = hover || hand;
     playBtn.style.opacity = (hover || hand) ? "0.45" : "";
     var wasHidden = handGroup.hidden;
@@ -2823,11 +3162,18 @@ C</textarea>
   var camNote = document.getElementById("camNote");
   var camStage = document.getElementById("camStage");
   var camCanvas = document.getElementById("camCanvas");
+  /* tap the preview to say "track that" when the heuristics pick wrong */
+  camCanvas.addEventListener("click", function(e){
+    if(!tracker || !tracker.isRunning()) return;
+    var r = camCanvas.getBoundingClientRect();
+    tracker.pickAt((e.clientX - r.left) / r.width, (e.clientY - r.top) / r.height);
+  });
   var camChip = document.getElementById("camChip");
   var camChipLabel = document.getElementById("camChipLabel");
   var camBtnLabel = document.getElementById("camBtnLabel");
   var camEmpty = document.getElementById("camEmpty");
-  var handRingSeg = document.getElementById("handRingSeg");
+  var handEffectSeg = document.getElementById("handEffectSeg");
+  var effectHint = document.getElementById("effectHint");
   var canvasCta = document.getElementById("canvasCta");
   var ctaMsg = document.getElementById("ctaMsg");
   var ctaBtn = document.getElementById("ctaBtn");
@@ -2863,6 +3209,7 @@ C</textarea>
 
     /* the gesture demo runs once per camera session: it comes up with
        the camera and leaves as soon as a hand is actually found */
+    camStage.hidden = S.mode !== "hand";
     var showCoach = S.mode === "hand" && live && !sawHand;
     if(showCoach && coach.hidden){
       coach.hidden = false;
@@ -2922,12 +3269,24 @@ C</textarea>
     else startCamera();
   });
   ctaBtn.addEventListener("click", startCamera);
-  handRingSeg.addEventListener("click", function(e){
-    var btn = e.target.closest("button[data-ring]");
+  var EFFECT_HINT = {
+    scatter: "An open palm blows the letter apart and it stays apart; a fist gathers it back.",
+    reveal:  "The letter is scattered until your hand passes over it, then it fades back.",
+    magnet:  "A fist pulls particles in and drags them; an open palm pushes them away."
+  };
+  function syncEffect(){
+    var btn = handEffectSeg.querySelector('button[data-effect="' + S.handEffect + '"]');
+    if(btn) setSegActive(handEffectSeg, btn);
+    effectHint.textContent = EFFECT_HINT[S.handEffect] || "";
+  }
+  handEffectSeg.addEventListener("click", function(e){
+    var btn = e.target.closest("button[data-effect]");
     if(!btn) return;
-    setSegActive(handRingSeg, btn);
-    S.handRing = btn.getAttribute("data-ring") === "on";
-    pushLive();
+    S.handEffect = btn.getAttribute("data-effect");
+    syncEffect();
+    /* reveal parks the particles on the float field instead of the
+       glyph, so the pool has to be laid out again */
+    rebuild();
     commit();
   });
 
@@ -2970,21 +3329,22 @@ C</textarea>
     });
 
     trackerOpts.grip = S.handGrip;
-    var rBtn = handRingSeg.querySelector('button[data-ring="' + (S.handRing ? "on" : "off") + '"]');
-    if(rBtn) setSegActive(handRingSeg, rBtn);
+    applyHandStrength();
+    syncEffect();
     var mBtn = modeSeg.querySelector('button[data-mode="' + S.mode + '"]');
     if(mBtn) setSegActive(modeSeg, mBtn);
     var sBtn = shapeSeg.querySelector('button[data-shape="' + S.shape + '"]');
     if(sBtn) setSegActive(shapeSeg, sBtn);
-    var pBtn = paletteSeg.querySelector('button[data-palette="' + S.palette + '"]');
-    if(pBtn) setSegActive(paletteSeg, pBtn);
 
     syncShapeRows();
     syncModeUI();
     syncPlay();
+    syncDerived();
+    renderThemes();
+    renderLooks();
     renderSwatches();
-    renderBgSwatches();
     syncBackground();
+    paintCoachDots();
   }
 
   /* ============================================================
@@ -2992,7 +3352,8 @@ C</textarea>
   ============================================================ */
   var shapeSeg = document.getElementById("shapeSeg");
   function syncShapeRows(){
-    rotRow.hidden = S.shape === "square";
+    /* rotating a circle is a visual no-op, so it only shows for ASCII */
+    rotRow.hidden = S.shape !== "ascii";
     brickRow.hidden = S.shape !== "square";
   }
   shapeSeg.addEventListener("click", function(e){
@@ -3001,6 +3362,7 @@ C</textarea>
     setSegActive(shapeSeg, btn);
     S.shape = btn.getAttribute("data-shape");
     syncShapeRows();
+    clearLook();
     pushLive();
     commit();
   });
@@ -3065,7 +3427,24 @@ C</textarea>
      Mobile bottom sheet with three detents
   ============================================================ */
   var sheetGrip = document.getElementById("sheetGrip");
+  /* The peek detent used to be a flat 0.22 of the viewport, which on a
+     700-800px phone is less than the pinned block itself -- so the
+     first thing you saw was a sheet cut through the middle of its own
+     controls. Derive it from what is actually up there instead. */
   var DETENTS = [0.22, 0.55, 0.86];
+  function measurePeek(){
+    var pinned = panel.querySelector(".panel-pinned");
+    var grip = document.getElementById("sheetGrip");
+    if(!pinned) return 0.22;
+    var need = pinned.getBoundingClientRect().height +
+               (grip ? grip.getBoundingClientRect().height : 0) + 14;
+    var frac = need / window.innerHeight;
+    return Math.max(0.22, Math.min(0.7, frac));
+  }
+  function refreshDetents(){
+    DETENTS[0] = measurePeek();
+    if(DETENTS[1] < DETENTS[0] + 0.08) DETENTS[1] = Math.min(0.8, DETENTS[0] + 0.18);
+  }
   var detent = 0;
   function isSheet(){ return window.matchMedia("(max-width: 767px)").matches; }
   function sheetFullPx(){ return Math.round(window.innerHeight * 0.86); }
@@ -3721,24 +4100,27 @@ C</textarea>
   ============================================================ */
   initSeg(modeSeg);
   initSeg(shapeSeg);
-  initSeg(handRingSeg);
+  initSeg(handEffectSeg);
   initSeg(themeSeg);
-  initSeg(paletteSeg);
   /* weightSeg styles its own active state, so it gets no indicator */
   initSeg(exportSections);
   initSeg(exportTabs);
 
   initGroups();
   initSliders();
+  initDerived();
+  renderThemes();
   renderLooks();
   renderSwatches();
-  renderBgSwatches();
   syncBackground();
+  syncDerived();
+  paintCoachDots();
   syncTextAlign();
   syncStepper();
   syncShapeRows();
   syncModeUI();
   syncPlay();
+  refreshDetents();
   applyDetent(false);
   rebuild();
   commit();
@@ -3749,6 +4131,7 @@ C</textarea>
   }
   window.addEventListener("resize", function(){
     syncAllSegs(true);
+    refreshDetents();
     applyDetent(false);
   });
 
