@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Letter Shape Generator</title>
+<title>Letter Shaper Studio</title>
 <style>
   /* ============================================================
      Theme tokens. Light is the base on :root; dark is defined
@@ -745,13 +745,53 @@
     .modal{width:100%;max-width:none;height:min(94dvh,100%);}
     .kbd-pop{right:10px;}
   }
+  /* ---------- hand mode: camera panel ---------- */
+  .cam-row{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+  .cam-row .btn{flex:0 0 auto;}
+  .cam-note{
+    flex:1;min-width:0;font-size:12px;color:var(--text-2);line-height:1.35;
+  }
+  .cam-note.is-error{color:#c1392b;}
+  :root[data-theme="dark"] .cam-note.is-error{color:#ff8a7a;}
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]) .cam-note.is-error{color:#ff8a7a;}
+  }
+  .cam-stage{
+    position:relative;width:100%;aspect-ratio:4/3;margin-bottom:14px;
+    border-radius:var(--r-md);overflow:hidden;
+    background:var(--control-bg);border:1px solid var(--panel-border);
+  }
+  .cam-stage canvas{display:block;width:100%;height:100%;}
+  .cam-empty{
+    position:absolute;inset:0;display:grid;place-items:center;
+    padding:0 18px;text-align:center;line-height:1.5;
+    font-size:12px;color:var(--text-3);
+  }
+  .cam-stage.live .cam-empty{display:none;}
+  .cam-chip{
+    position:absolute;left:8px;bottom:8px;
+    display:inline-flex;align-items:center;gap:6px;
+    padding:3px 9px 4px;border-radius:var(--r-pill);
+    font-size:11.5px;font-weight:500;color:var(--text-2);
+    background:color-mix(in srgb, var(--panel-bg-solid) 84%, transparent);
+    -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
+    opacity:0;transition:opacity var(--dur-med) var(--ease);
+  }
+  .cam-stage.live .cam-chip{opacity:1;}
+  .cam-chip .dot{
+    display:inline-block;width:6px;height:6px;border-radius:50%;
+    background:var(--text-3);
+    transition:background var(--dur-fast) var(--ease);
+  }
+  .cam-chip.is-push .dot,.cam-chip.is-grab .dot{background:var(--accent);}
+  .cam-chip.is-push,.cam-chip.is-grab{color:var(--text);}
 </style>
 </head>
 <body>
 <div class="app">
 
   <header class="topbar">
-    <h1>Letter Shape Generator</h1>
+    <h1>Letter Shaper Studio</h1>
     <div class="topbar-actions">
       <button type="button" class="icon-btn" id="helpBtn" aria-label="Keyboard shortcuts" title="Keyboard shortcuts">?</button>
       <button type="button" class="btn btn-ghost btn-compact" id="exportBtn">
@@ -820,6 +860,7 @@
           <div class="seg" id="modeSeg" role="group" aria-label="Interaction mode">
             <button type="button" data-mode="loop" class="active">Loop</button>
             <button type="button" data-mode="hover">Hover</button>
+            <button type="button" data-mode="hand">Hand</button>
           </div>
           <button class="btn btn-primary btn-compact" id="playBtn" aria-pressed="false" title="Play (Space)" style="min-width:88px">
             <span class="icon-swap" aria-hidden="true">
@@ -832,6 +873,11 @@
         <div class="collapse collapsed" id="hoverHintWrap">
           <div class="collapse-inner">
             <p class="hint" style="margin-top:0">Hover the canvas to gather the text; move away to scatter. On touch, press and hold.</p>
+          </div>
+        </div>
+        <div class="collapse collapsed" id="handHintWrap">
+          <div class="collapse-inner">
+            <p class="hint" style="margin-top:0">Turn the camera on in Hand below. An open palm blows the particles apart, a fist gathers and drags them, letting go settles them back into the letter.</p>
           </div>
         </div>
         <div class="quick-row">
@@ -972,6 +1018,58 @@ C</textarea>
                   <div class="ctl-head"><label for="scatterRange">Spread</label><span class="val" id="scatterRangeVal">0.27</span></div>
                   <input type="range" id="scatterRange" min="0" max="0.8" step="0.01" value="0.27">
                 </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="group" style="--i:5" data-group="hand" id="handGroup" hidden>
+          <button type="button" class="group-head" aria-expanded="true" aria-controls="handBody">
+            <svg class="chev" width="9" height="9" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 1.5 7 5 3.5 8.5"/></svg>
+            <span>Hand</span>
+          </button>
+          <div class="collapse" id="handBody">
+            <div class="collapse-inner">
+              <div class="group-body">
+                <div class="cam-row">
+                  <button type="button" class="btn btn-ghost btn-compact" id="camBtn" aria-pressed="false">
+                    <svg width="13" height="12" viewBox="0 0 13 12" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <rect x="0.9" y="2.6" width="8" height="7.2" rx="1.6"/>
+                      <path d="M8.9 6.1 12.1 4v5l-3.2-2.1z"/>
+                    </svg>
+                    <span id="camBtnLabel">Turn on camera</span>
+                  </button>
+                  <span class="cam-note" id="camNote" role="status">Video stays in this browser tab.</span>
+                </div>
+                <div class="cam-stage" id="camStage">
+                  <canvas id="camCanvas" width="320" height="240" aria-hidden="true"></canvas>
+                  <p class="cam-empty" id="camEmpty">Camera off</p>
+                  <span class="cam-chip" id="camChip"><span class="dot"></span><b id="camChipLabel">Looking for a hand</b></span>
+                </div>
+                <div class="ctl">
+                  <div class="ctl-head"><label for="handReach">Reach</label><span class="val" id="handReachVal">0.30</span></div>
+                  <input type="range" id="handReach" min="0.08" max="0.7" step="0.01" value="0.3">
+                </div>
+                <div class="ctl">
+                  <div class="ctl-head"><label for="handForce">Force</label><span class="val" id="handForceVal">1.00</span></div>
+                  <input type="range" id="handForce" min="0.1" max="2.5" step="0.05" value="1">
+                </div>
+                <div class="ctl">
+                  <div class="ctl-head"><label for="handReturn">Return</label><span class="val" id="handReturnVal">1.00</span></div>
+                  <input type="range" id="handReturn" min="0.2" max="3" step="0.05" value="1">
+                </div>
+                <div class="ctl">
+                  <div class="ctl-head"><label for="handGrip">Fist sensitivity</label><span class="val" id="handGripVal">0.50</span></div>
+                  <input type="range" id="handGrip" min="0" max="1" step="0.02" value="0.5">
+                </div>
+                <div class="quick-row">
+                  <label>Ring</label>
+                  <div class="seg seg-small" id="handRingSeg" role="group" aria-label="Hand ring overlay">
+                    <button type="button" data-ring="on" class="active">Show</button>
+                    <button type="button" data-ring="off">Hide</button>
+                  </div>
+                </div>
+                <p class="hint">Detection is skin tone plus movement, computed here on a 160 x 120 copy of the frame. Nothing is uploaded and no frame is stored. Bright, even light and a plain background read best; wave to be picked up again after holding still.</p>
               </div>
             </div>
           </div>
@@ -1208,6 +1306,7 @@ C</textarea>
           trembleFreq: trembleFreq, tremblePhase: tremblePhase, breathPhase: breathPhase,
           glyph: glyph, bricks: bricks,
           floatU: r(), floatV: r(),
+          ox: 0, oy: 0, ovx: 0, ovy: 0,
           baseX: W/2, baseY: H/2, fromX: 0, fromY: 0,
           toX: W/2, toY: H/2, scatterX: 0, scatterY: 0
         });
@@ -1230,7 +1329,8 @@ C</textarea>
     var current = cfg.text || phrases[0];
     var seqIndex = Math.max(0, phrases.indexOf(current));
     var hover = cfg.mode === "hover";
-    var state = hover ? "float" : "static";
+    var handMode = cfg.mode === "hand";
+    var state = hover ? "float" : (handMode ? "idle" : "static");
     var stateT = 0, clock = 0;
     var paused = !!cfg.paused;
     var motionRng = makeRng(((cfg.seed >>> 0) || 1) + 1);
@@ -1268,6 +1368,19 @@ C</textarea>
       state = active ? "gather" : "disperse";
       stateT = 0;
     }
+    /* Hand mode: an external tracker feeds normalised coordinates in,
+       the field below turns them into per-particle displacement. */
+    var hand = { active:false, x:W/2, y:H/2, sx:W/2, sy:H/2, vx:0, vy:0, open:1 };
+    function setHand(h){
+      if(!h || !h.active){ hand.active = false; return; }
+      var nx = clamp(h.x, -0.6, 1.6) * W;
+      var ny = clamp(h.y, -0.6, 1.6) * H;
+      if(!hand.active){ hand.sx = nx; hand.sy = ny; hand.vx = 0; hand.vy = 0; }
+      hand.x = nx; hand.y = ny;
+      hand.open = typeof h.open === "number" ? clamp(h.open, 0, 1) : 1;
+      hand.active = true;
+    }
+
     function onEnter(e){ if(e.pointerType !== "touch") setHover(true); }
     function onLeave(){ setHover(false); }
     function onDown(e){ if(e.pointerType === "touch") setHover(true); }
@@ -1310,6 +1423,60 @@ C</textarea>
     }
     function update(dt){
       var i, p, e;
+      if(handMode){
+        /* Every particle is a damped spring anchored to its glyph
+           position. An open palm adds an outward impulse, a fist adds
+           an inward one plus the hand's own velocity, so a closed hand
+           carries the cloud with it and opening releases it. */
+        var reach = (cfg.handReach > 0 ? cfg.handReach : 0.3) * W;
+        var force = cfg.handForce == null ? 1 : cfg.handForce;
+        var ret = cfg.handReturn > 0 ? cfg.handReturn : 1;
+        var K = 24 * ret, DAMP = 6.2 * Math.sqrt(ret);
+        if(hand.active){
+          var f = 1 - Math.pow(0.0012, dt);
+          var nx = hand.sx + (hand.x - hand.sx) * f;
+          var ny = hand.sy + (hand.y - hand.sy) * f;
+          hand.vx = hand.vx * 0.8 + ((nx - hand.sx) / dt) * 0.2;
+          hand.vy = hand.vy * 0.8 + ((ny - hand.sy) / dt) * 0.2;
+          hand.sx = nx; hand.sy = ny;
+        } else { hand.vx *= 0.9; hand.vy *= 0.9; }
+        var open = hand.open, grip = 1 - open;
+        var pushA = 3400 * force * open;
+        var gripK = 52 * force * grip;
+        var gripD = 9 * grip, carry = 2.4 * grip;
+        var hx = hand.sx, hy = hand.sy, r2 = reach * reach;
+        var ax, ay, dx, dy, d, d2, fall;
+        for(i=0;i<shapes.length;i++){
+          p = shapes[i];
+          ax = -K * p.ox - DAMP * p.ovx;
+          ay = -K * p.oy - DAMP * p.ovy;
+          if(hand.active){
+            dx = p.baseX + p.ox - hx; dy = p.baseY + p.oy - hy;
+            d2 = dx*dx + dy*dy;
+            if(d2 < r2){
+              d = Math.sqrt(d2); if(d < 1) d = 1;
+              fall = 1 - d/reach; fall *= fall;
+              if(pushA){
+                e = pushA * fall / d;
+                ax += dx * e; ay += dy * e;
+              }
+              if(gripK){
+                e = gripK * fall;
+                ax -= dx * e + p.ovx * gripD * fall - hand.vx * carry * fall;
+                ay -= dy * e + p.ovy * gripD * fall - hand.vy * carry * fall;
+              }
+            }
+          }
+          p.ovx += ax * dt; p.ovy += ay * dt;
+          if(p.ovx > 6000) p.ovx = 6000; else if(p.ovx < -6000) p.ovx = -6000;
+          if(p.ovy > 6000) p.ovy = 6000; else if(p.ovy < -6000) p.ovy = -6000;
+          p.ox += p.ovx * dt; p.oy += p.ovy * dt;
+          if(p.ox > W) p.ox = W; else if(p.ox < -W) p.ox = -W;
+          if(p.oy > H) p.oy = H; else if(p.oy < -H) p.oy = -H;
+        }
+        state = hand.active ? (hand.open > 0.3 ? "push" : "grab") : "idle";
+        return;
+      }
       if(hover){
         if(state === "gather"){
           stateT += dt;
@@ -1379,6 +1546,21 @@ C</textarea>
       return sp;
     }
 
+    /* the hand ring has to read on any background, so its ink is
+       picked from the background's luminance and cached */
+    var inkHex = null, inkVal = "0,0,0";
+    function handInk(bg){
+      if(bg === inkHex) return inkVal;
+      inkHex = bg;
+      var hex = String(bg || "").replace("#","");
+      if(hex.length === 3) hex = hex[0]+hex[0]+hex[1]+hex[1]+hex[2]+hex[2];
+      var n = parseInt(hex, 16);
+      if(hex.length !== 6 || isNaN(n)){ inkVal = "0,0,0"; return inkVal; }
+      var lum = (0.299*((n>>16)&255) + 0.587*((n>>8)&255) + 0.114*(n&255)) / 255;
+      inkVal = lum > 0.55 ? "0,0,0" : "255,255,255";
+      return inkVal;
+    }
+
     function render(){
       ctx.fillStyle = cfg.background;
       ctx.fillRect(0,0,W,H);
@@ -1393,7 +1575,7 @@ C</textarea>
           wob  = Math.sin(t*p.trembleFreq + p.tremblePhase) * tAmp;
           wob2 = Math.cos(t*p.trembleFreq*0.83 + p.tremblePhase*1.3) * tAmp;
           breathe = 1 + Math.sin(t*p.trembleFreq*0.6 + p.breathPhase) * bAmp;
-          x = p.baseX + wob; y = p.baseY + wob2;
+          x = p.baseX + p.ox + wob; y = p.baseY + p.oy + wob2;
           size = p.size * breathe; if(size < 0.2) size = 0.2;
           if(p.opacity !== lastAlpha){ ctx.globalAlpha = p.opacity; lastAlpha = p.opacity; }
           ctx.fillStyle = p.color;
@@ -1407,7 +1589,7 @@ C</textarea>
           wob  = Math.sin(t*p.trembleFreq + p.tremblePhase) * tAmp;
           wob2 = Math.cos(t*p.trembleFreq*0.83 + p.tremblePhase*1.3) * tAmp;
           breathe = 1 + Math.sin(t*p.trembleFreq*0.6 + p.breathPhase) * bAmp;
-          x = p.baseX + wob; y = p.baseY + wob2;
+          x = p.baseX + p.ox + wob; y = p.baseY + p.oy + wob2;
           size = p.size * breathe; if(size < 0.2) size = 0.2;
           if(p.opacity !== lastAlpha){ ctx.globalAlpha = p.opacity; lastAlpha = p.opacity; }
           var rot = (p.rotBase + Math.sin(t*p.trembleFreq*0.5 + p.tremblePhase) * 15) * DEG;
@@ -1424,7 +1606,7 @@ C</textarea>
           wob  = Math.sin(t*p.trembleFreq + p.tremblePhase) * tAmp;
           wob2 = Math.cos(t*p.trembleFreq*0.83 + p.tremblePhase*1.3) * tAmp;
           breathe = 1 + Math.sin(t*p.trembleFreq*0.6 + p.breathPhase) * bAmp;
-          x = p.baseX + wob; y = p.baseY + wob2;
+          x = p.baseX + p.ox + wob; y = p.baseY + p.oy + wob2;
           if(breathe < 0.05) breathe = 0.05;
           if(p.opacity !== lastAlpha){ ctx.globalAlpha = p.opacity; lastAlpha = p.opacity; }
           var bricks = p.bricks;
@@ -1438,6 +1620,20 @@ C</textarea>
         }
       }
       ctx.globalAlpha = 1;
+      if(handMode && hand.active && cfg.handRing !== false){
+        var ink = handInk(cfg.background);
+        var gripAmt = 1 - hand.open;
+        var rr = (cfg.handReach > 0 ? cfg.handReach : 0.3) * W * (1 - 0.3*gripAmt);
+        ctx.lineWidth = Math.max(1.5, W/620);
+        ctx.strokeStyle = "rgba(" + ink + "," + (0.14 + 0.16*gripAmt).toFixed(3) + ")";
+        ctx.beginPath();
+        ctx.arc(hand.sx, hand.sy, rr, 0, TWO_PI);
+        ctx.stroke();
+        ctx.fillStyle = "rgba(" + ink + ",0.42)";
+        ctx.beginPath();
+        ctx.arc(hand.sx, hand.sy, Math.max(3, W/240), 0, TWO_PI);
+        ctx.fill();
+      }
     }
 
     var raf = null, last = null, driven = false;
@@ -1468,6 +1664,7 @@ C</textarea>
       getCurrent: function(){ return current; },
       getFontPx: function(){ return lastFontPx; },
       setHover: setHover,
+      setHand: setHand,
       /* recording hooks: take manual control of the clock so frames
          are produced deterministically rather than at display rate */
       takeOver: function(){
@@ -1480,11 +1677,12 @@ C</textarea>
       },
       tick: function(dt){ clock += dt; update(dt); render(); },
       resetLoop: function(){
-        state = hover ? "float" : "static";
+        state = hover ? "float" : (handMode ? "idle" : "static");
         stateT = 0; seqIndex = 0; current = phrases[0];
         assignTargets(current);
         for(var i=0;i<shapes.length;i++){
           var p = shapes[i];
+          p.ox = p.oy = p.ovx = p.ovy = 0;
           if(hover){ p.baseX = fx(p); p.baseY = fy(p); }
           else { p.baseX = p.toX; p.baseY = p.toY; }
         }
@@ -1492,6 +1690,324 @@ C</textarea>
     };
   }
   /* ENGINE-END */
+
+  /* ============================================================
+     TRACKER-START
+     Webcam hand tracker. No dependencies, no network, no frame ever
+     leaves the page: every camera frame is drawn into a 160 x 120
+     scratch canvas and thrown away after the pass below.
+
+       1. per pixel, a skin test (RGB rules plus a YCbCr window) and a
+          motion accumulator that decays over about a second
+       2. a 3x3 majority filter to knock out speckle
+       3. connected components, keeping the largest blob that is
+          actually moving -- that is what separates a hand from the
+          face sitting still behind it
+       4. openness from the blob's radial profile: fingers push the
+          92nd percentile radius far past the median, a fist does not
+
+     Serialized into hand-mode code exports the same way the engine
+     is, so like the engine it must not close over anything outside
+     itself.
+  ============================================================ */
+  function handTracker(opts){
+    opts = opts || {};
+    var DW = 160, DH = 120, N = DW*DH;
+    var MIN_AREA = 130;           /* ~0.7% of the frame */
+    var LOST_GRACE = 0.45;        /* seconds of no blob before letting go */
+
+    var video = document.createElement("video");
+    video.muted = true;
+    video.autoplay = true;
+    video.playsInline = true;
+    video.setAttribute("playsinline", "");
+    video.setAttribute("muted", "");
+
+    var work = document.createElement("canvas");
+    work.width = DW; work.height = DH;
+    var wctx = work.getContext("2d", { willReadFrequently: true });
+    var overlay = document.createElement("canvas");
+    overlay.width = DW; overlay.height = DH;
+    var octx = overlay.getContext("2d");
+    var ovData = octx.createImageData(DW, DH);
+
+    var gray = new Uint8Array(N), prevGray = new Uint8Array(N);
+    var skin = new Uint8Array(N), mask = new Uint8Array(N);
+    var act = new Float32Array(N);
+    var labels = new Int32Array(N), stack = new Int32Array(N);
+    var radHist = new Float64Array(36);
+
+    var stream = null, raf = null, running = false, hasPrev = false;
+    var lastMs = 0, seenAt = 0, clock = 0;
+    var sx = 0.5, sy = 0.5, sOpen = 1, sRad = 0.12;
+    var tracked = false, gripped = false;
+    var result = { active:false, x:0.5, y:0.5, open:1, grab:false, radius:0.12,
+                   spread:0, area:0 };
+
+    function clamp01(v){ return v < 0 ? 0 : (v > 1 ? 1 : v); }
+
+    /* centre-crop the camera frame to 4:3 so a 16:9 webcam is not squashed */
+    function srcRect(){
+      var vw = video.videoWidth, vh = video.videoHeight;
+      if(!vw || !vh) return null;
+      var want = DW/DH, have = vw/vh, sw, sh;
+      if(have > want){ sh = vh; sw = vh*want; }
+      else { sw = vw; sh = vw/want; }
+      return { x:(vw-sw)/2, y:(vh-sh)/2, w:sw, h:sh };
+    }
+
+    function segment(dt){
+      var rect = srcRect();
+      if(!rect) return;
+      wctx.save();
+      wctx.setTransform(-1, 0, 0, 1, DW, 0);   /* mirror: moving right moves right */
+      wctx.drawImage(video, rect.x, rect.y, rect.w, rect.h, 0, 0, DW, DH);
+      wctx.restore();
+
+      var d = wctx.getImageData(0, 0, DW, DH).data;
+      var decay = Math.pow(0.36, dt);
+      var i, j, r, g, b, y, cb, cr, mx, mn, a, mv;
+      for(i=0;i<N;i++){
+        j = i*4;
+        r = d[j]; g = d[j+1]; b = d[j+2];
+        y = 0.299*r + 0.587*g + 0.114*b;
+        cb = 128 - 0.168736*r - 0.331264*g + 0.5*b;
+        cr = 128 + 0.5*r - 0.418688*g - 0.081312*b;
+        mx = r > g ? (r > b ? r : b) : (g > b ? g : b);
+        mn = r < g ? (r < b ? r : b) : (g < b ? g : b);
+        skin[i] = (r > 58 && g > 32 && b > 16 && mx - mn > 13 && r - g > 9 && r >= b &&
+                   cb >= 76 && cb <= 133 && cr >= 133 && cr <= 180) ? 1 : 0;
+        mv = hasPrev ? Math.abs(y - prevGray[i]) : 0;
+        a = act[i] * decay;
+        act[i] = mv > 15 ? 1 : a;
+        prevGray[i] = y;
+        gray[i] = y;
+      }
+      hasPrev = true;
+
+      mask.fill(0);
+      var x, c;
+      for(y=1;y<DH-1;y++){
+        for(x=1;x<DW-1;x++){
+          i = y*DW + x;
+          c = skin[i-DW-1] + skin[i-DW] + skin[i-DW+1] +
+              skin[i-1]    + skin[i]    + skin[i+1] +
+              skin[i+DW-1] + skin[i+DW] + skin[i+DW+1];
+          if(c >= 5) mask[i] = 1;
+        }
+      }
+    }
+
+    function components(){
+      labels.fill(0);
+      var comps = [], lab = 0, i, sp, q, qx, qy;
+      var area, sumX, sumY, sumA, minX, maxX, minY, maxY;
+      for(i=0;i<N;i++){
+        if(!mask[i] || labels[i]) continue;
+        lab++;
+        sp = 0; stack[sp++] = i; labels[i] = lab;
+        area = 0; sumX = 0; sumY = 0; sumA = 0;
+        minX = DW; maxX = 0; minY = DH; maxY = 0;
+        while(sp){
+          q = stack[--sp];
+          qx = q % DW; qy = (q - qx) / DW;
+          area++; sumX += qx; sumY += qy; sumA += act[q];
+          if(qx < minX) minX = qx;
+          if(qx > maxX) maxX = qx;
+          if(qy < minY) minY = qy;
+          if(qy > maxY) maxY = qy;
+          if(qx > 0    && mask[q-1]  && !labels[q-1]) { labels[q-1]  = lab; stack[sp++] = q-1; }
+          if(qx < DW-1 && mask[q+1]  && !labels[q+1]) { labels[q+1]  = lab; stack[sp++] = q+1; }
+          if(qy > 0    && mask[q-DW] && !labels[q-DW]){ labels[q-DW] = lab; stack[sp++] = q-DW; }
+          if(qy < DH-1 && mask[q+DW] && !labels[q+DW]){ labels[q+DW] = lab; stack[sp++] = q+DW; }
+        }
+        if(area >= MIN_AREA){
+          comps.push({ lab:lab, area:area, cx:sumX/area, cy:sumY/area, act:sumA/area,
+                       minX:minX, maxX:maxX, minY:minY, maxY:maxY });
+        }
+      }
+      return comps;
+    }
+
+    /* a blob is a hand candidate when it moves; one already being
+       tracked only has to stay roughly where it was */
+    function pick(comps){
+      var best = null, bestScore = 0, i, c, near, need, score;
+      for(i=0;i<comps.length;i++){
+        c = comps[i];
+        near = tracked &&
+               Math.abs(c.cx/DW - sx) < 0.24 &&
+               Math.abs(c.cy/DH - sy) < 0.28;
+        need = near ? 0.05 : 0.22;
+        if(c.act < need) continue;
+        score = c.area * (0.4 + c.act) * (near ? 1.7 : 1);
+        if(score > bestScore){ bestScore = score; best = c; }
+      }
+      return best;
+    }
+
+    /* r92 / r50 of the blob's radial profile: scale free, so it does
+       not care how close the hand is to the lens */
+    function spread(c){
+      var maxR = Math.max(c.maxX - c.cx, c.cx - c.minX, c.maxY - c.cy, c.cy - c.minY) + 1;
+      var bins = radHist.length, x, y, i, dx, dy, bin;
+      radHist.fill(0);
+      for(y=c.minY;y<=c.maxY;y++){
+        for(x=c.minX;x<=c.maxX;x++){
+          i = y*DW + x;
+          if(labels[i] !== c.lab) continue;
+          dx = x - c.cx; dy = y - c.cy;
+          bin = Math.floor(Math.sqrt(dx*dx + dy*dy) / maxR * bins);
+          if(bin >= bins) bin = bins - 1;
+          radHist[bin]++;
+        }
+      }
+      function pct(f){
+        var want = c.area * f, run = 0, k;
+        for(k=0;k<bins;k++){
+          run += radHist[k];
+          if(run >= want) return (k + 0.5) / bins * maxR;
+        }
+        return maxR;
+      }
+      var r50 = pct(0.5), r92 = pct(0.92);
+      return r50 > 0.5 ? r92 / r50 : 1.35;
+    }
+
+    function paintOverlay(best){
+      var px = ovData.data, i, j, on;
+      for(i=0;i<N;i++){
+        j = i*4;
+        on = best && labels[i] === best.lab;
+        if(on){ px[j] = 10; px[j+1] = 132; px[j+2] = 255; px[j+3] = 150; }
+        else if(mask[i]){ px[j] = 255; px[j+1] = 255; px[j+2] = 255; px[j+3] = 40; }
+        else { px[j+3] = 0; }
+      }
+      octx.putImageData(ovData, 0, 0);
+    }
+
+    function detect(dt){
+      segment(dt);
+      var best = pick(components());
+      paintOverlay(best);
+      if(best){
+        var ratio = spread(best);
+        result.spread = ratio;
+        result.area = best.area;
+        var gs = typeof opts.grip === "number" ? opts.grip : 0.5;
+        var mid = 1.36 + 0.24 * gs;
+        var open01 = clamp01((ratio - (mid - 0.1)) / 0.2);
+        var nx = best.cx / DW, ny = best.cy / DH;
+        if(tracked){
+          sx += (nx - sx) * 0.34;
+          sy += (ny - sy) * 0.34;
+          sOpen += (open01 - sOpen) * 0.28;
+        } else {
+          sx = nx; sy = ny; sOpen = open01;
+        }
+        sRad += (Math.sqrt(best.area/Math.PI)/DW - sRad) * 0.2;
+        if(!gripped && sOpen < 0.35) gripped = true;
+        else if(gripped && sOpen > 0.6) gripped = false;
+        tracked = true;
+        seenAt = clock;
+      } else if(tracked && clock - seenAt > LOST_GRACE){
+        tracked = false;
+        gripped = false;
+      }
+      result.active = tracked;
+      result.x = sx; result.y = sy; result.radius = sRad;
+      result.grab = tracked && gripped;
+      /* the engine wants one number: a fist reads as fully closed, an
+         open hand never reads weaker than a light push */
+      result.open = gripped ? 0.06 : Math.max(0.5, sOpen);
+      if(opts.onFrame) opts.onFrame(result);
+    }
+
+    function loop(nowMs){
+      if(!running) return;
+      raf = requestAnimationFrame(loop);
+      if(nowMs - lastMs < 33) return;
+      var dt = lastMs ? Math.min(0.3, (nowMs - lastMs) / 1000) : 0.033;
+      lastMs = nowMs;
+      clock += dt;
+      if(video.readyState < 2 || !video.videoWidth) return;
+      try{
+        detect(dt);
+      }catch(err){
+        stop();
+        if(opts.onError) opts.onError(err);
+      }
+    }
+
+    function start(){
+      if(running) return Promise.resolve();
+      var md = navigator.mediaDevices;
+      if(!md || !md.getUserMedia){
+        return Promise.reject(new Error("This browser has no camera API here. Try https or localhost."));
+      }
+      return md.getUserMedia({
+        audio: false,
+        video: { facingMode: "user", width: { ideal: 320 }, height: { ideal: 240 } }
+      }).then(function(st){
+        stream = st;
+        video.srcObject = st;
+        var pl = video.play();
+        if(pl && pl.catch) pl.catch(function(){});
+        running = true; hasPrev = false; tracked = false; gripped = false;
+        lastMs = 0; clock = 0; seenAt = 0;
+        act.fill(0);
+        raf = requestAnimationFrame(loop);
+      });
+    }
+
+    function stop(){
+      running = false;
+      if(raf !== null){ cancelAnimationFrame(raf); raf = null; }
+      if(stream){
+        stream.getTracks().forEach(function(t){ t.stop(); });
+        stream = null;
+      }
+      video.srcObject = null;
+      tracked = false; gripped = false;
+      result.active = false; result.grab = false; result.open = 1;
+      octx.clearRect(0, 0, DW, DH);
+      if(opts.onFrame) opts.onFrame(result);
+    }
+
+    /* preview for a UI that wants to show what the tracker sees */
+    function drawPreview(ctx2, w, h){
+      ctx2.clearRect(0, 0, w, h);
+      var rect = srcRect();
+      if(rect){
+        ctx2.save();
+        ctx2.setTransform(-1, 0, 0, 1, w, 0);
+        ctx2.drawImage(video, rect.x, rect.y, rect.w, rect.h, 0, 0, w, h);
+        ctx2.restore();
+      }
+      ctx2.globalAlpha = 0.85;
+      ctx2.drawImage(overlay, 0, 0, w, h);
+      ctx2.globalAlpha = 1;
+      if(result.active){
+        var cx = result.x * w, cy = result.y * h;
+        var rr = Math.max(10, result.radius * w * (result.grab ? 1.1 : 1.7));
+        ctx2.lineWidth = 2;
+        ctx2.strokeStyle = result.grab ? "rgba(255,255,255,.95)" : "rgba(10,132,255,.95)";
+        ctx2.beginPath();
+        ctx2.arc(cx, cy, rr, 0, Math.PI*2);
+        ctx2.stroke();
+      }
+    }
+
+    return {
+      start: start,
+      stop: stop,
+      video: video,
+      result: result,
+      drawPreview: drawPreview,
+      isRunning: function(){ return running; }
+    };
+  }
+  /* TRACKER-END */
 
   /* ============================================================
      Palettes, background presets, looks
@@ -1567,6 +2083,7 @@ C</textarea>
     count:2920, edgeFeather:6, minOpacity:0.9,
     trembleAmp:6.5, trembleSpeed:2, breathAmp:0.36,
     holdTime:1.8, scatterTime:1.1, reformTime:1.1, scatterRange:0.27,
+    handReach:0.3, handForce:1, handReturn:1, handGrip:0.5, handRing:true,
     background:"#d6cfc5",
     colors: clonePalette(PALETTES.classic),
     palette:"classic",
@@ -1588,6 +2105,8 @@ C</textarea>
       trembleAmp:S.trembleAmp, trembleSpeed:S.trembleSpeed, breathAmp:S.breathAmp,
       holdTime:S.holdTime, scatterTime:S.scatterTime, reformTime:S.reformTime,
       scatterRange:S.scatterRange,
+      handReach:S.handReach, handForce:S.handForce,
+      handReturn:S.handReturn, handRing:S.handRing,
       background:S.background,
       colors: clonePalette(S.colors),
       seed:S.seed
@@ -1611,8 +2130,13 @@ C</textarea>
     liveCfg.scatterTime = S.scatterTime;
     liveCfg.reformTime = S.reformTime;
     liveCfg.scatterRange = S.scatterRange;
+    liveCfg.handReach = S.handReach;
+    liveCfg.handForce = S.handForce;
+    liveCfg.handReturn = S.handReturn;
+    liveCfg.handRing = S.handRing;
     liveCfg.background = S.background;
     liveCfg.shape = S.shape;
+    trackerOpts.grip = S.handGrip;
   }
 
   /* ============================================================
@@ -1629,6 +2153,8 @@ C</textarea>
       minOpacity:S.minOpacity, trembleAmp:S.trembleAmp, trembleSpeed:S.trembleSpeed,
       breathAmp:S.breathAmp, holdTime:S.holdTime, scatterTime:S.scatterTime,
       reformTime:S.reformTime, scatterRange:S.scatterRange,
+      handReach:S.handReach, handForce:S.handForce, handReturn:S.handReturn,
+      handGrip:S.handGrip, handRing:S.handRing,
       background:S.background, colors:S.colors, palette:S.palette, seed:S.seed
     });
   }
@@ -1756,7 +2282,11 @@ C</textarea>
     { id:"holdTime",     key:"holdTime",       val:"holdTimeVal",     structural:false, fmt:function(v){ return v.toFixed(1) + "s"; } },
     { id:"scatterTime",  key:"scatterTime",    val:"scatterTimeVal",  structural:false, fmt:function(v){ return v.toFixed(1) + "s"; } },
     { id:"reformTime",   key:"reformTime",     val:"reformTimeVal",   structural:false, fmt:function(v){ return v.toFixed(1) + "s"; } },
-    { id:"scatterRange", key:"scatterRange",   val:"scatterRangeVal", structural:false, fmt:function(v){ return v.toFixed(2); } }
+    { id:"scatterRange", key:"scatterRange",   val:"scatterRangeVal", structural:false, fmt:function(v){ return v.toFixed(2); } },
+    { id:"handReach",    key:"handReach",      val:"handReachVal",    structural:false, fmt:function(v){ return v.toFixed(2); } },
+    { id:"handForce",    key:"handForce",      val:"handForceVal",    structural:false, fmt:function(v){ return v.toFixed(2); } },
+    { id:"handReturn",   key:"handReturn",     val:"handReturnVal",   structural:false, fmt:function(v){ return v.toFixed(2); } },
+    { id:"handGrip",     key:"handGrip",       val:"handGripVal",     structural:false, fmt:function(v){ return v.toFixed(2); } }
   ];
 
   function flashVal(el){
@@ -2024,6 +2554,7 @@ C</textarea>
   var seedInput = document.getElementById("seedInput");
   var reseedBtn = document.getElementById("reseedBtn");
   var hoverHintWrap = document.getElementById("hoverHintWrap");
+  var handHintWrap = document.getElementById("handHintWrap");
   var seqRow = document.getElementById("seqRow");
   var holdRow = document.getElementById("holdRow");
   var rotRow = document.getElementById("rotRow");
@@ -2080,11 +2611,17 @@ C</textarea>
 
   function syncModeUI(){
     var hover = S.mode === "hover";
+    var hand = S.mode === "hand";
     hoverHintWrap.classList.toggle("collapsed", !hover);
-    seqRow.classList.toggle("collapsed", hover);
-    holdRow.classList.toggle("collapsed", hover);
-    playBtn.disabled = hover;
-    playBtn.style.opacity = hover ? "0.45" : "";
+    handHintWrap.classList.toggle("collapsed", !hand);
+    seqRow.classList.toggle("collapsed", hover || hand);
+    holdRow.classList.toggle("collapsed", hover || hand);
+    playBtn.disabled = hover || hand;
+    playBtn.style.opacity = (hover || hand) ? "0.45" : "";
+    var wasHidden = handGroup.hidden;
+    handGroup.hidden = !hand;
+    if(!hand) stopCamera();
+    if(hand && wasHidden) requestAnimationFrame(function(){ syncAllSegs(true); });
   }
   modeSeg.addEventListener("click", function(e){
     var btn = e.target.closest("button[data-mode]");
@@ -2105,7 +2642,7 @@ C</textarea>
     pauseIcon.style.opacity = playing ? "1" : "0";
   }
   function togglePlay(){
-    if(S.mode === "hover") return;
+    if(S.mode === "hover" || S.mode === "hand") return;
     S.paused = !S.paused;
     if(engine) engine.setPaused(S.paused);
     if(liveCfg) liveCfg.paused = S.paused;
@@ -2144,6 +2681,106 @@ C</textarea>
     commit();
   });
 
+
+  /* ============================================================
+     Hand mode: camera, tracker, preview
+     The tracker only ever runs while the user has asked for it, and
+     its output is pushed straight into the engine's hand field.
+  ============================================================ */
+  var handGroup = document.getElementById("handGroup");
+  var camBtn = document.getElementById("camBtn");
+  var camNote = document.getElementById("camNote");
+  var camStage = document.getElementById("camStage");
+  var camCanvas = document.getElementById("camCanvas");
+  var camChip = document.getElementById("camChip");
+  var camChipLabel = document.getElementById("camChipLabel");
+  var camBtnLabel = document.getElementById("camBtnLabel");
+  var handRingSeg = document.getElementById("handRingSeg");
+  var camCtx = camCanvas.getContext("2d");
+  var tracker = null;
+  var trackerOpts = {
+    grip: S.handGrip,
+    onFrame: function(h){ if(engine && engine.setHand) engine.setHand(h); },
+    onError: function(err){ setCamNote(String(err && err.message || err), true); stopCamera(); }
+  };
+
+  function setCamNote(text, isError){
+    camNote.textContent = text;
+    camNote.classList.toggle("is-error", !!isError);
+  }
+  function syncCamBtn(){
+    var on = !!(tracker && tracker.isRunning());
+    camBtn.setAttribute("aria-pressed", on ? "true" : "false");
+    camBtnLabel.textContent = on ? "Turn off camera" : "Turn on camera";
+    camStage.classList.toggle("live", on);
+  }
+  function startCamera(){
+    if(tracker && tracker.isRunning()) return;
+    if(!tracker) tracker = handTracker(trackerOpts);
+    setCamNote("Asking for camera access…");
+    camBtn.disabled = true;
+    tracker.start().then(function(){
+      camBtn.disabled = false;
+      setCamNote("Video stays in this browser tab.");
+      syncCamBtn();
+    })["catch"](function(err){
+      camBtn.disabled = false;
+      var name = err && err.name;
+      var msg = name === "NotAllowedError" || name === "SecurityError"
+        ? "Camera blocked. Allow it in the address bar, then try again."
+        : name === "NotFoundError" || name === "OverconstrainedError"
+          ? "No camera found."
+          : name === "NotReadableError"
+            ? "The camera is busy in another app."
+            : (err && err.message) || "Could not start the camera.";
+      setCamNote(msg, true);
+      syncCamBtn();
+    });
+  }
+  function stopCamera(){
+    if(tracker && tracker.isRunning()){
+      tracker.stop();
+      camCtx.clearRect(0, 0, camCanvas.width, camCanvas.height);
+      setCamNote("Video stays in this browser tab.");
+      resetChip();
+    }
+    if(engine && engine.setHand) engine.setHand(null);
+    syncCamBtn();
+  }
+  camBtn.addEventListener("click", function(){
+    if(tracker && tracker.isRunning()) stopCamera();
+    else startCamera();
+  });
+  handRingSeg.addEventListener("click", function(e){
+    var btn = e.target.closest("button[data-ring]");
+    if(!btn) return;
+    setSegActive(handRingSeg, btn);
+    S.handRing = btn.getAttribute("data-ring") === "on";
+    pushLive();
+    commit();
+  });
+
+  var lastChip = "";
+  function resetChip(){
+    lastChip = "";
+    camChip.classList.remove("is-grab", "is-push");
+    camChipLabel.textContent = "Looking for a hand";
+  }
+  function drawCamPreview(){
+    if(!tracker || !tracker.isRunning() || handGroup.hidden) return;
+    tracker.drawPreview(camCtx, camCanvas.width, camCanvas.height);
+    var r = tracker.result;
+    var chip = !r.active ? "idle" : (r.grab ? "grab" : "push");
+    if(chip !== lastChip){
+      lastChip = chip;
+      camChip.classList.toggle("is-grab", chip === "grab");
+      camChip.classList.toggle("is-push", chip === "push");
+      camChipLabel.textContent = chip === "grab" ? "Fist — gathering"
+        : chip === "push" ? "Open palm — pushing"
+        : "Looking for a hand";
+    }
+  }
+
   /* ============================================================
      Sync every control from S (used by undo and looks)
   ============================================================ */
@@ -2160,6 +2797,9 @@ C</textarea>
       writeVal(c);
     });
 
+    trackerOpts.grip = S.handGrip;
+    var rBtn = handRingSeg.querySelector('button[data-ring="' + (S.handRing ? "on" : "off") + '"]');
+    if(rBtn) setSegActive(handRingSeg, rBtn);
     var mBtn = modeSeg.querySelector('button[data-mode="' + S.mode + '"]');
     if(mBtn) setSegActive(modeSeg, mBtn);
     var sBtn = shapeSeg.querySelector('button[data-shape="' + S.shape + '"]');
@@ -2355,6 +2995,13 @@ C</textarea>
   var currentKind = "vanilla";
 
   var ENGINE_SRC = particleTextEngine.toString();
+  var TRACKER_SRC = handTracker.toString();
+
+  /* hand mode exports ship the tracker too, and open the camera on
+     the first click: browsers only hand out a stream after a gesture */
+  function isHand(){ return S.mode === "hand"; }
+  function trackerBlock(){ return isHand() ? "\n\n" + TRACKER_SRC : ""; }
+  function gripLiteral(){ return JSON.stringify(S.handGrip); }
 
   function cfgLiteral(){
     var c = buildCfg();
@@ -2362,13 +3009,42 @@ C</textarea>
     return JSON.stringify(c, null, 2);
   }
   function buildVanilla(){
+    var tail = isHand()
+      ? '\n\nvar canvas = document.getElementById("particle-text");\n' +
+        'var engine = particleTextEngine(canvas, cfg);\n' +
+        'var tracker = null;\n' +
+        'canvas.style.cursor = "pointer";\n' +
+        'canvas.title = "Click to enable the camera";\n' +
+        'canvas.addEventListener("click", function(){\n' +
+        '  if(tracker) return;\n' +
+        '  tracker = handTracker({ grip: ' + gripLiteral() + ', onFrame: function(h){ engine.setHand(h); } });\n' +
+        '  tracker.start()["catch"](function(err){ tracker = null; console.warn("Camera unavailable:", err); });\n' +
+        '});\n'
+      : '\n\nparticleTextEngine(document.getElementById("particle-text"), cfg);\n';
     return '<canvas id="particle-text"></canvas>\n<script>\n(function(){\n"use strict";\nvar cfg = ' +
-      cfgLiteral() + ';\n\n' + ENGINE_SRC +
-      '\n\nparticleTextEngine(document.getElementById("particle-text"), cfg);\n})();\n<\/script>';
+      cfgLiteral() + ';\n\n' + ENGINE_SRC + trackerBlock() + tail + '})();\n<\/script>';
   }
   function buildReact(){
+    var body = isHand()
+      ? '    const canvas = ref.current;\n' +
+        '    const engine = particleTextEngine(canvas, cfg);\n' +
+        '    let tracker = null;\n' +
+        '    // browsers only hand out a camera stream after a gesture\n' +
+        '    const onClick = () => {\n' +
+        '      if (tracker) return;\n' +
+        '      tracker = handTracker({ grip: ' + gripLiteral() + ', onFrame: (h) => engine.setHand(h) });\n' +
+        '      tracker.start().catch((err) => { tracker = null; console.warn("Camera unavailable:", err); });\n' +
+        '    };\n' +
+        '    canvas.addEventListener("click", onClick);\n' +
+        '    return () => {\n' +
+        '      canvas.removeEventListener("click", onClick);\n' +
+        '      if (tracker) tracker.stop();\n' +
+        '      engine.destroy();\n' +
+        '    };\n'
+      : '    const engine = particleTextEngine(ref.current, cfg);\n' +
+        '    return () => engine.destroy();\n';
     return 'import { useEffect, useRef } from "react";\n\nconst DEFAULT_CFG = ' + cfgLiteral() +
-      ';\n\n' + ENGINE_SRC +
+      ';\n\n' + ENGINE_SRC + trackerBlock() +
       '\n\nexport default function ParticleText(props) {\n' +
       '  const ref = useRef(null);\n' +
       '  const { text, colors, mode, ...rest } = props || {};\n' +
@@ -2376,26 +3052,36 @@ C</textarea>
       '    const cfg = { ...DEFAULT_CFG, ...rest };\n' +
       '    if (text) { cfg.text = text; cfg.phrases = [text]; }\n' +
       '    if (colors) cfg.colors = colors;\n' +
-      '    if (mode) cfg.mode = mode;\n' +
-      '    const engine = particleTextEngine(ref.current, cfg);\n' +
-      '    return () => engine.destroy();\n' +
+      '    if (mode) cfg.mode = mode;\n' + body +
       '  }, [text, colors, mode]);\n' +
       '  return <canvas ref={ref} style={{ maxWidth: "100%", height: "auto" }} />;\n' +
       '}\n';
   }
   function buildVue(){
+    /* the camera needs a gesture, so the canvas opens it on first click */
+    var mountTail = isHand()
+      ? '  el.value.style.cursor = "pointer";\n' +
+        '  el.value.addEventListener("click", () => {\n' +
+        '    if (tracker) return;\n' +
+        '    tracker = handTracker({ grip: ' + gripLiteral() + ', onFrame: (h) => engine.setHand(h) });\n' +
+        '    tracker.start().catch((err) => { tracker = null; console.warn("Camera unavailable:", err); });\n' +
+        '  });\n'
+      : '';
     return '<template>\n  <canvas ref="el" style="max-width:100%;height:auto" />\n<\/template>\n\n' +
       '<script setup>\nimport { ref, onMounted, onUnmounted } from "vue";\n\n' +
       'const props = defineProps({ text: String, colors: Array, mode: String });\n' +
-      'const el = ref(null);\nlet engine = null;\n\n' +
-      'const DEFAULT_CFG = ' + cfgLiteral() + ';\n\n' + ENGINE_SRC + '\n\n' +
+      'const el = ref(null);\nlet engine = null;\n' +
+      (isHand() ? 'let tracker = null;\n' : '') + '\n' +
+      'const DEFAULT_CFG = ' + cfgLiteral() + ';\n\n' + ENGINE_SRC + trackerBlock() + '\n\n' +
       'onMounted(() => {\n' +
       '  const cfg = { ...DEFAULT_CFG };\n' +
       '  if (props.text) { cfg.text = props.text; cfg.phrases = [props.text]; }\n' +
       '  if (props.colors) cfg.colors = props.colors;\n' +
       '  if (props.mode) cfg.mode = props.mode;\n' +
-      '  engine = particleTextEngine(el.value, cfg);\n' +
-      '});\nonUnmounted(() => engine && engine.destroy());\n<\/script>';
+      '  engine = particleTextEngine(el.value, cfg);\n' + mountTail +
+      '});\nonUnmounted(() => {\n' +
+      (isHand() ? '  if (tracker) tracker.stop();\n' : '') +
+      '  if (engine) engine.destroy();\n});\n<\/script>';
   }
   function codeFor(kind){
     if(kind === "react") return buildReact();
@@ -2497,7 +3183,10 @@ C</textarea>
     if(typeof blobOrUrl !== "string") setTimeout(function(){ URL.revokeObjectURL(url); }, 4000);
   }
   function loopDuration(){
-    var n = Math.max(1, S.mode === "hover" ? 1 : S.phrases.length);
+    var n = Math.max(1, (S.mode === "hover" || S.mode === "hand") ? 1 : S.phrases.length);
+    /* hand mode has no timeline of its own: a recording is however
+       long a performance in front of the camera gets */
+    if(S.mode === "hand") return 8;
     if(S.mode === "hover") return Math.min(12, S.reformTime + 1.2 + S.scatterTime + 0.6);
     return Math.min(12, (S.holdTime + S.scatterTime + S.reformTime) * n);
   }
@@ -2803,6 +3492,7 @@ C</textarea>
   window.__lsg = {
     S:S, canvas:canvas, safeName:safeName, download:download,
     loopDuration:loopDuration, getEngine:function(){ return engine; },
+    getTracker:function(){ return tracker; },
     gif:{ buildGifPalette:buildGifPalette, quantizeFrame:quantizeFrame,
           lzwFrameBytes:lzwFrameBytes, gifSubBlocks:gifSubBlocks,
           assembleGif:assembleGif, SIZE:GIF_SIZE }
@@ -2844,8 +3534,12 @@ C</textarea>
         textLabel.textContent = cur;
       }
       fontLabel.textContent = Math.round(engine.getFontPx());
-      stateDot.classList.toggle("playing", S.mode === "hover" ? st !== "float" : !S.paused);
+      stateDot.classList.toggle("playing",
+        S.mode === "hover" ? st !== "float"
+        : S.mode === "hand" ? st !== "idle"
+        : !S.paused);
     }
+    drawCamPreview();
     countLabel.textContent = S.count;
     requestAnimationFrame(statusLoop);
   }
@@ -2855,6 +3549,7 @@ C</textarea>
   ============================================================ */
   initSeg(modeSeg);
   initSeg(shapeSeg);
+  initSeg(handRingSeg);
   initSeg(themeSeg);
   initSeg(paletteSeg);
   /* weightSeg styles its own active state, so it gets no indicator */

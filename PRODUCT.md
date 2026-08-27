@@ -10,7 +10,7 @@ Yanice(产品设计师)以及她分享作品的观众。使用场景:桌面浏�
 
 ## Product Purpose
 
-粒子造字机(Letter Shape Generator):单文件 HTML 创作工具。输入文字(单字符到整句,含中文),数千个粒子按 seeded RNG 填充字形轮廓,持续颤动呼吸,并可在多段文字间炸开重组。支持循环播放与 hover 显现两种模式,可将当前参数烘焙导出为 Vanilla JS / React / Vue 组件。成功标准:调参即时反馈、60fps、导出代码开箱可用。
+粒子造字机(Letter Shaper Studio):单文件 HTML 创作工具。输入文字(单字符到整句,含中文),数千个粒子按 seeded RNG 填充字形轮廓,持续颤动呼吸,并可在多段文字间炸开重组。支持循环播放、hover 显现、摄像头手部互动三种模式,可将当前参数烘焙导出为 Vanilla JS / React / Vue 组件。成功标准:调参即时反馈、60fps、导出代码开箱可用。
 
 ## Brand Personality
 
@@ -32,14 +32,17 @@ Yanice(产品设计师)以及她分享作品的观众。使用场景:桌面浏�
 
 ## Deviations from SKILL.md (Yanice 明确授权,2026-08-27)
 
-安装在 `02_agent_memory_and_skills/letter-shape-generator-tool-bycoraldesign/SKILL.md` 的规范仍是参数默认值与架构的权威,但以下两条已被 Yanice 本人明确覆盖,后续会话不要"修正"回去:
+安装在 `02_agent_memory_and_skills/letter-shape-generator-tool-bycoraldesign/SKILL.md` 的规范仍是参数默认值与架构的权威,但以下几条已被 Yanice 本人明确覆盖,后续会话不要"修正"回去:
 
 1. **预设色板可以存在。** SKILL.md 记录「3 套科技感色板与高饱和默认板被明确否决并回退两次,不要再提」。该禁令针对的是 agent 自行发起的审美改良;Yanice 于 2026-08-26 主动要求加入莫兰迪色系。现状:默认仍是 Classic 九色加权板,Morandi 作为可切换预设并存。科技感/霓虹/高饱和方向的禁令依然有效。
 2. **参数面板移到右侧。** SKILL.md 写「面板在 LEFT 是刻意偏离右侧惯例,保持不变」。Yanice 于 2026-08-27 要求改到右侧,理由是对齐 Apple 自家工具的检查器惯例(Final Cut Inspector / Keynote 格式面板)并让画布占据视觉主位。
+3. **产品更名为 Letter Shaper Studio。** Yanice 于 2026-08-27 要求。仓库名与 skill 来源名保持原样。
+4. **新增 Hand 模式(摄像头手部互动)。** Yanice 于 2026-08-27 要求:开摄像头后摊开手掌推散粒子、握拳抓取并拖动。识别是自己写的(肤色 + 运动 + 连通域 + 径向分布),不引入任何外部库或模型,「零依赖、离线可用、单文件」这条底线不破;精度换来的是可控与可导出——Hand 模式的导出代码里内联的就是同一个 `handTracker`。
 
 ## Accessibility & Inclusion
 
 - 正文对比度 ≥ 4.5:1,双主题各自独立验证
-- prefers-reduced-motion:UI 过渡压平;canvas 动画是内容本体且默认暂停,hover 模式降级为直接切换
+- prefers-reduced-motion:UI 过渡压平;canvas 动画是内容本体且默认暂停,hover 模式降级为直接切换;Hand 模式是用户主动发起的实时互动,不做降级
+- 摄像头只在用户点按后开启,离开 Hand 模式即关闭;每帧只进内存做识别,不上传、不留存
 - 键盘可达:滑杆原生可键控、swatch 为真按钮、focus-visible 焦点环、空格播放/暂停
 - 触控目标 ≥ 44px(小控件用扩大热区)
