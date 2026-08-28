@@ -12,20 +12,22 @@
 
 - **Look** — 五个成品预设,一键出一整套设计(形状 + 动态 + 配色):Confetti / Brickwork / Numerals / Morandi mist / Coarse grain。选中的那个会高亮;手动改任何参数后高亮取消,因为结果已经不是那个预设了
 - **Colour** — 七套配色,**每套自带配好的背景色**:Classic / Morandi / Ink / Chalk / Ember / Sea / Moss。色板和背景是一起选的,不用再自己配
-- **Text** — 最多 40 字符,支持中文整句。单字符时用 `↑` `↓` 循环 A–Z 0–9。字数越多字号自动越小,始终居中在画布内
+- **Text** — 支持中文整句。**Loop 模式下一行就是一个短语**,会依次循环 —— 文字只在这一个地方定义,没有第二个输入框。单字符时用 `↑` `↓` 循环 A–Z 0–9。字数越多字号自动越小,始终居中在画布内
 - **Loop / Hover / Hand** — 三种模式,见下
 
 下面只有两个抽屉(Hand 模式下三个),默认都是收起的:
 
-- **Adjust** — 形状(Circle / Square / ASCII,只显示当前形状用得上的那个参数)加四根合并滑杆:**Density**(数量)· **Grain**(颗粒大小)· **Liveliness**(颤动与呼吸)· **Tempo**(循环节奏,仅 Loop)· **Spread**(散开范围)。一根滑杆背后写的是原来的两三个参数,导出的 cfg 仍然是完整的
-- **More** — Seed、短语序列、以及所有原始参数(min/max size、edge feather、opacity、tremble 三项、三段时长),还有单色编辑和自定义背景
+- **Adjust** — 形状(Circle / Square / ASCII)加五根滑杆:**Density**(数量)· **Grain**(颗粒大小)· **Liveliness**(颤动与呼吸)· **Tempo**(循环节奏,仅 Loop)· **Spread**(散开范围),外加 Seed / Reseed。一根滑杆背后写的是原来的两三个参数,而且是**按当前比例缩放**而不是写死一对值 —— 所以 Brickwork 那种粗颗粒被你推一下之后还是粗的
+- **Colours** — 九个色点(可改颜色和出现频率)加自定义背景色
 - **Hand** — 只在 Hand 模式出现,见下
+
+**被删掉的**:min/max size、edge feather、opacity、tremble 三项、三段时长、rotation、stack density —— 这些要么已经被上面的合并滑杆覆盖(同一个参数有两个入口比只有一个更糟),要么只由 Look 预设设定、没人会手动去调。参数本身都还在:Look 照常写它们,**导出的 cfg 仍然是完整可改的参数集**,只是界面上不再摆出来。
 
 折叠状态会记住。
 
 ### 三种模式
 
-- **Loop** — 粒子按 Motion 里的短语序列循环:停留 → 炸开 → 重组成下一段文字。Sequence 一行一个短语
+- **Loop** — 粒子按 Text 里的短语循环:停留 → 炸开 → 重组成下一段文字。**Text 一行一个短语**;只写一行就是同一段文字反复炸开重组
 - **Hover** — 粒子散开漂浮在整个画布上,鼠标悬停时飞入聚合成文字,移开再散开。触屏是按住 / 松开
 - **Hand** — 用摄像头跟手互动。字保持成形,手是一个力场:**摊开手掌**把附近的粒子推散开,**握拳**把它们吸过来抓在手里、跟着手走,**再摊开**就炸出去、各自弹回字形里
 
@@ -66,7 +68,6 @@ Export 按钮,两类:
 - `Vanilla JS` — 一个 `<canvas>` 加一段 IIFE,直接贴进任何页面
 - `React` — 函数组件,`useRef` + `useEffect`,cleanup 里 `cancelAnimationFrame`;`text` / `colors` / `mode` 可用 props 覆盖
 - `Vue` — Vue 3 SFC,`<script setup>`,`onMounted` / `onUnmounted`
-- `Config JSON` — 纯参数对象,给程序化调用
 
 导出的代码内联的是页面里同一个 `particleTextEngine` 函数(通过 `Function.prototype.toString()` 序列化),所以线上跑的和你在工具里看到的是同一套渲染逻辑。Hand 模式还会一并内联 `handTracker`,并给 canvas 接一个「首次点击开摄像头」的手势(浏览器不点不给流)。
 

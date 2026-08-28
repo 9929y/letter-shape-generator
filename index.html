@@ -475,7 +475,12 @@
     transition:border-color var(--dur-fast) var(--ease),box-shadow var(--dur-fast) var(--ease);
   }
   .text-field:focus{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent);}
-  textarea.text-field{width:100%;resize:vertical;line-height:1.5;min-height:64px;}
+  textarea.text-field{width:100%;resize:none;line-height:1.5;min-height:36px;}
+  /* Text is a textarea now because it doubles as the Loop sequence, but
+     it must still read as a single-line field until it holds more */
+  .stepper textarea.text-field{
+    min-height:36px;padding-top:8px;padding-bottom:8px;overflow:hidden;
+  }
 
   .stepper{display:flex;align-items:center;flex:1;min-width:0;}
   /* single character: centered; longer text: left-aligned for readability */
@@ -1044,7 +1049,7 @@
         <div class="row" style="margin-bottom:0">
           <label for="letterInput">Text</label>
           <div class="stepper" id="textStepper">
-            <input class="text-field" id="letterInput" maxlength="40" value="C" autocomplete="off" spellcheck="false" title="Up / Down cycles a single character" aria-label="Text, up to 40 characters" />
+            <textarea class="text-field" id="letterInput" rows="1" maxlength="200" spellcheck="false" title="Up / Down cycles a single character" aria-label="Text. In Loop, one phrase per line">C</textarea>
           </div>
         </div>
         <div class="quick-row">
@@ -1060,6 +1065,11 @@
             </span>
             <span id="playLabel">Play</span>
           </button>
+        </div>
+        <div class="collapse collapsed" id="seqHint">
+          <div class="collapse-inner">
+            <p class="hint" style="margin-top:0">One phrase per line — Loop cycles through them.</p>
+          </div>
         </div>
         <div class="collapse collapsed" id="hoverHintWrap">
           <div class="collapse-inner">
@@ -1132,14 +1142,6 @@
                   <button type="button" data-shape="ascii">ASCII</button>
                 </div>
                 <div style="height:14px"></div>
-                <div class="ctl" id="rotRow">
-                  <div class="ctl-head"><label for="rotJitter">Rotation</label><span class="val" id="rotJitterVal">60°</span></div>
-                  <input type="range" id="rotJitter" min="0" max="180" step="5" value="60">
-                </div>
-                <div class="ctl" id="brickRow" hidden>
-                  <div class="ctl-head"><label for="brickBars">Stack density</label><span class="val" id="brickBarsVal">5</span></div>
-                  <input type="range" id="brickBars" min="2" max="10" step="1" value="5">
-                </div>
                 <div class="ctl">
                   <div class="ctl-head"><label for="density">Density</label><span class="val" id="densityVal">2920</span></div>
                   <input type="range" id="density" min="0" max="1" step="0.01" value="0.46">
@@ -1160,19 +1162,6 @@
                   <div class="ctl-head"><label for="scatterRange">Spread</label><span class="val" id="scatterRangeVal">0.27</span></div>
                   <input type="range" id="scatterRange" min="0" max="0.8" step="0.01" value="0.27">
                 </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section class="group" style="--i:3" data-group="more">
-          <button type="button" class="group-head" aria-expanded="false" aria-controls="moreBody">
-            <svg class="chev" width="9" height="9" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 1.5 7 5 3.5 8.5"/></svg>
-            <span>More</span>
-          </button>
-          <div class="collapse" id="moreBody">
-            <div class="collapse-inner">
-              <div class="group-body">
                 <div class="quick-row" style="margin-bottom:14px">
                   <label for="seedInput">Seed</label>
                   <input class="text-field seed-field" id="seedInput" inputmode="numeric" autocomplete="off" spellcheck="false" value="88172645" aria-label="Random seed, press Enter to apply" title="Seed (Up / Down to step)" />
@@ -1183,63 +1172,19 @@
                     Reseed
                   </button>
                 </div>
-                <div class="collapse" id="seqRow">
-                  <div class="collapse-inner">
-                    <div class="ctl">
-                      <div class="ctl-head"><label for="seqInput">Sequence</label><span class="val">One phrase per line</span></div>
-                      <textarea class="text-field" id="seqInput" rows="3" spellcheck="false" aria-label="Sequence, one phrase per line">A
-B
-C</textarea>
-                    </div>
-                  </div>
-                </div>
-                <div class="sub-head">Particles</div>
-                <div class="ctl">
-                  <div class="ctl-head"><label for="minSize">Min size</label><span class="val" id="minSizeVal">1</span></div>
-                  <input type="range" id="minSize" min="0.5" max="20" step="0.5" value="1">
-                </div>
-                <div class="ctl">
-                  <div class="ctl-head"><label for="maxSize">Max size</label><span class="val" id="maxSizeVal">15</span></div>
-                  <input type="range" id="maxSize" min="1" max="30" step="0.5" value="15">
-                </div>
-                <div class="ctl">
-                  <div class="ctl-head"><label for="edgeFeather">Edge feather</label><span class="val" id="edgeFeatherVal">6</span></div>
-                  <input type="range" id="edgeFeather" min="0" max="20" step="1" value="6">
-                </div>
-                <div class="ctl">
-                  <div class="ctl-head"><label for="minOpacity">Opacity</label><span class="val" id="minOpacityVal">0.90</span></div>
-                  <input type="range" id="minOpacity" min="0.1" max="1" step="0.05" value="0.9">
-                </div>
-                <div class="sub-head">Motion</div>
-                <div class="ctl">
-                  <div class="ctl-head"><label for="trembleAmp">Tremble amount</label><span class="val" id="trembleAmpVal">6.5</span></div>
-                  <input type="range" id="trembleAmp" min="0" max="20" step="0.5" value="6.5">
-                </div>
-                <div class="ctl">
-                  <div class="ctl-head"><label for="trembleSpeed">Tremble speed</label><span class="val" id="trembleSpeedVal">2.0</span></div>
-                  <input type="range" id="trembleSpeed" min="0.2" max="6" step="0.1" value="2">
-                </div>
-                <div class="ctl">
-                  <div class="ctl-head"><label for="breathAmp">Breathing</label><span class="val" id="breathAmpVal">0.36</span></div>
-                  <input type="range" id="breathAmp" min="0" max="1" step="0.02" value="0.36">
-                </div>
-                <div class="collapse" id="loopTimesRow">
-                  <div class="collapse-inner">
-                    <div class="ctl">
-                      <div class="ctl-head"><label for="holdTime">Hold</label><span class="val" id="holdTimeVal">1.8s</span></div>
-                      <input type="range" id="holdTime" min="0.2" max="5" step="0.1" value="1.8">
-                    </div>
-                    <div class="ctl">
-                      <div class="ctl-head"><label for="scatterTime">Scatter</label><span class="val" id="scatterTimeVal">1.1s</span></div>
-                      <input type="range" id="scatterTime" min="0.2" max="3" step="0.1" value="1.1">
-                    </div>
-                    <div class="ctl">
-                      <div class="ctl-head"><label for="reformTime">Reform</label><span class="val" id="reformTimeVal">1.1s</span></div>
-                      <input type="range" id="reformTime" min="0.2" max="3" step="0.1" value="1.1">
-                    </div>
-                  </div>
-                </div>
-                <div class="sub-head">Colours in this theme</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="group" style="--i:3" data-group="colours">
+          <button type="button" class="group-head" aria-expanded="false" aria-controls="coloursBody">
+            <svg class="chev" width="9" height="9" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 1.5 7 5 3.5 8.5"/></svg>
+            <span>Colours</span>
+          </button>
+          <div class="collapse" id="coloursBody">
+            <div class="collapse-inner">
+              <div class="group-body">
                 <div class="swatches" id="swatches"></div>
                 <p class="hint">Click a dot to change that colour or how often it appears. Picking a theme above replaces the whole set.</p>
                 <div class="sub-head">Background</div>
@@ -1297,7 +1242,6 @@ C</textarea>
         <button type="button" data-kind="vanilla" class="active">Vanilla JS</button>
         <button type="button" data-kind="react">React</button>
         <button type="button" data-kind="vue">Vue</button>
-        <button type="button" data-kind="json">Config JSON</button>
       </div>
       <div class="codewrap">
         <button type="button" class="copy-btn" id="copyBtn">
@@ -2427,7 +2371,7 @@ C</textarea>
   var S = {
     width:1200, height:1200,
     text:"C",
-    phrases:["A","B","C"],
+    phrases:["C"],
     mode:"loop",
     shape:"circle",
     minSize:1, maxSize:15,
@@ -2637,23 +2581,11 @@ C</textarea>
      Sliders
   ============================================================ */
   var CONTROLS = [
-    { id:"minSize",      key:"minSize",        val:"minSizeVal",      structural:true },
-    { id:"maxSize",      key:"maxSize",        val:"maxSizeVal",      structural:true },
-    { id:"rotJitter",    key:"rotationJitter", val:"rotJitterVal",    structural:true,  fmt:function(v){ return v + "°"; } },
-    { id:"brickBars",    key:"brickBars",      val:"brickBarsVal",    structural:true },
-    { id:"count",        key:"count",          val:"countVal",        structural:true,  int:true },
-    { id:"edgeFeather",  key:"edgeFeather",    val:"edgeFeatherVal",  structural:true },
-    { id:"minOpacity",   key:"minOpacity",     val:"minOpacityVal",   structural:true,  fmt:function(v){ return v.toFixed(2); } },
-    { id:"trembleAmp",   key:"trembleAmp",     val:"trembleAmpVal",   structural:false },
-    { id:"trembleSpeed", key:"trembleSpeed",   val:"trembleSpeedVal", structural:false, fmt:function(v){ return v.toFixed(1); } },
-    { id:"breathAmp",    key:"breathAmp",      val:"breathAmpVal",    structural:false, fmt:function(v){ return v.toFixed(2); } },
-    { id:"holdTime",     key:"holdTime",       val:"holdTimeVal",     structural:false, fmt:function(v){ return v.toFixed(1) + "s"; } },
-    { id:"scatterTime",  key:"scatterTime",    val:"scatterTimeVal",  structural:false, fmt:function(v){ return v.toFixed(1) + "s"; } },
-    { id:"reformTime",   key:"reformTime",     val:"reformTimeVal",   structural:false, fmt:function(v){ return v.toFixed(1) + "s"; } },
     { id:"scatterRange", key:"scatterRange",   val:"scatterRangeVal", structural:false, fmt:function(v){ return v.toFixed(2); } },
     { id:"handStrength", key:"handStrength",   val:"handStrengthVal", structural:false, fmt:function(v){ return v.toFixed(2); },
       after:function(){ applyHandStrength(); } }
   ];
+
 
   function flashVal(el){
     if(!el) return;
@@ -2672,6 +2604,13 @@ C</textarea>
      out of the raw state (so a Look or a More slider still shows up
      here correctly) and writes the whole group on the way in. The raw
      keys are untouched, so the exported cfg stays complete. */
+  /* One slider, several parameters. Each entry reads a position back out
+     of the raw state and writes the whole group on the way in. The raw
+     keys are untouched, so the exported cfg stays complete.
+     These scale the values they find rather than writing an absolute
+     pair, because the raw sliders are gone: if Grain snapped minSize to
+     the bottom of its range, one nudge would flatten Brickwork's chunky
+     min 6 / max 16 into something it was never meant to be. */
   var DERIVED = [
     { id:"density", val:"densityVal", structural:true,
       read:function(){ return (S.count - 300) / 5700; },
@@ -2680,27 +2619,34 @@ C</textarea>
     { id:"grain", val:"grainVal", structural:true,
       read:function(){ return (S.maxSize - 5) / 20; },
       write:function(t){
+        var ratio = S.maxSize > 0 ? S.minSize / S.maxSize : 0.08;
+        if(ratio > 0.9) ratio = 0.9;
         S.maxSize = +(5 + t * 20).toFixed(1);
-        S.minSize = +(0.5 + t * 1.5).toFixed(1);
+        S.minSize = +Math.max(0.5, S.maxSize * ratio).toFixed(1);
       },
       text:function(){ return S.maxSize; } },
     { id:"liveliness", val:"livelinessVal", structural:false,
       read:function(){ return S.trembleAmp / 14; },
       write:function(t){
+        var sr = S.trembleAmp > 0 ? S.trembleSpeed / S.trembleAmp : 0.3;
+        var br = S.trembleAmp > 0 ? S.breathAmp / S.trembleAmp : 0.055;
         S.trembleAmp = +(t * 14).toFixed(1);
-        S.trembleSpeed = +(0.6 + t * 2.8).toFixed(1);
-        S.breathAmp = +(t * 0.6).toFixed(2);
+        S.trembleSpeed = +Math.min(6, Math.max(0.2, S.trembleAmp * sr || 2)).toFixed(1);
+        S.breathAmp = +Math.min(1, Math.max(0, S.trembleAmp * br)).toFixed(2);
       },
       text:function(){ return S.trembleAmp.toFixed(1); } },
     { id:"tempo", val:"tempoVal", structural:false,
       read:function(){ return (S.holdTime - 0.2) / 4.8; },
       write:function(t){
+        var sr = S.holdTime > 0 ? S.scatterTime / S.holdTime : 0.6;
+        var rr = S.holdTime > 0 ? S.reformTime / S.holdTime : 0.6;
         S.holdTime = +(0.2 + t * 4.8).toFixed(1);
-        S.scatterTime = +(0.4 + t * 1.6).toFixed(1);
-        S.reformTime = +(0.4 + t * 1.6).toFixed(1);
+        S.scatterTime = +Math.min(3, Math.max(0.2, S.holdTime * sr)).toFixed(1);
+        S.reformTime = +Math.min(3, Math.max(0.2, S.holdTime * rr)).toFixed(1);
       },
       text:function(){ return S.holdTime.toFixed(1) + "s"; } }
   ];
+
   function writeDerivedVal(d){
     var el = document.getElementById(d.val);
     if(el) el.textContent = d.text();
@@ -3013,7 +2959,6 @@ C</textarea>
   ============================================================ */
   var letterInput = document.getElementById("letterInput");
   var textStepper = document.getElementById("textStepper");
-  var seqInput = document.getElementById("seqInput");
   var modeSeg = document.getElementById("modeSeg");
   var playBtn = document.getElementById("playBtn");
   var playLabel = document.getElementById("playLabel");
@@ -3023,29 +2968,38 @@ C</textarea>
   var reseedBtn = document.getElementById("reseedBtn");
   var hoverHintWrap = document.getElementById("hoverHintWrap");
   var handHintWrap = document.getElementById("handHintWrap");
-  var seqRow = document.getElementById("seqRow");
-  var loopTimesRow = document.getElementById("loopTimesRow");
+  var seqHint = document.getElementById("seqHint");
   var tempoRow = document.getElementById("tempoRow");
   var spreadRow = document.getElementById("spreadRow");
-  var rotRow = document.getElementById("rotRow");
-  var brickRow = document.getElementById("brickRow");
 
   function syncTextAlign(){
-    letterInput.style.textAlign = S.text.length > 1 ? "left" : "center";
+    var single = S.text.length === 1 && S.phrases.length === 1;
+    letterInput.style.textAlign = single ? "center" : "left";
   }
   function syncStepper(){
-    /* single character centres and sets big; a phrase reads left */
-    textStepper.classList.toggle("multi", S.text.length > 1);
+    /* single character centres and sets big; anything longer reads left */
+    textStepper.classList.toggle("multi", !(S.text.length === 1 && S.phrases.length === 1));
+    /* one line per phrase, up to four, so the field shows what it holds */
+    var rows = Math.min(4, Math.max(1, letterInput.value.split("\n").length));
+    letterInput.rows = rows;
+  }
+  /* Text and Sequence were two fields defining the same thing. There is
+     one now: every non-empty line is a phrase, and Loop cycles them. */
+  function readText(){
+    var lines = letterInput.value.split("\n").map(function(t){ return t.trim(); })
+      .filter(function(t){ return t.length; });
+    S.phrases = lines.length ? lines : ["C"];
+    S.text = S.phrases[0];
   }
   letterInput.addEventListener("input", function(){
-    S.text = letterInput.value.slice(0,40);
+    readText();
     syncTextAlign();
     syncStepper();
     rebuild();
   });
   letterInput.addEventListener("change", function(){ commit(); });
   letterInput.addEventListener("keydown", function(e){
-    if(S.text.length > 1) return;
+    if(S.text.length > 1 || S.phrases.length > 1) return;
     if(e.key === "ArrowUp" || e.key === "ArrowDown"){
       e.preventDefault();
       stepLetter(e.key === "ArrowUp" ? 1 : -1);
@@ -3057,6 +3011,7 @@ C</textarea>
     if(i < 0) i = 0;
     i = (i + dir + LETTER_CYCLE.length) % LETTER_CYCLE.length;
     S.text = LETTER_CYCLE[i];
+    S.phrases = [S.text];
     letterInput.value = S.text;
     syncTextAlign();
     syncStepper();
@@ -3064,16 +3019,6 @@ C</textarea>
     commit();
   }
 
-  function parsePhrases(){
-    var lines = seqInput.value.split("\n").map(function(s){ return s.trim(); })
-      .filter(function(s){ return s.length; });
-    return lines.length ? lines : [S.text];
-  }
-  seqInput.addEventListener("input", function(){
-    S.phrases = parsePhrases();
-    rebuild();
-  });
-  seqInput.addEventListener("change", function(){ commit(); });
 
   function syncModeUI(){
     var hover = S.mode === "hover";
@@ -3081,8 +3026,7 @@ C</textarea>
     hoverHintWrap.classList.toggle("collapsed", !hover);
     handHintWrap.classList.toggle("collapsed", !hand);
     /* the loop timeline only means something in Loop */
-    seqRow.classList.toggle("collapsed", hover || hand);
-    loopTimesRow.classList.toggle("collapsed", hover || hand);
+    seqHint.classList.toggle("collapsed", hover || hand);
     tempoRow.classList.toggle("collapsed", hover || hand);
     spreadRow.classList.toggle("collapsed", hand);
     playBtn.disabled = hover || hand;
@@ -3316,10 +3260,9 @@ C</textarea>
      Sync every control from S (used by undo and looks)
   ============================================================ */
   function syncAllControls(){
-    letterInput.value = S.text;
+    letterInput.value = S.phrases.join("\n");
     syncTextAlign();
     syncStepper();
-    seqInput.value = S.phrases.join("\n");
     seedInput.value = S.seed;
 
     CONTROLS.forEach(function(c){
@@ -3351,11 +3294,9 @@ C</textarea>
      Shape
   ============================================================ */
   var shapeSeg = document.getElementById("shapeSeg");
-  function syncShapeRows(){
-    /* rotating a circle is a visual no-op, so it only shows for ASCII */
-    rotRow.hidden = S.shape !== "ascii";
-    brickRow.hidden = S.shape !== "square";
-  }
+  /* the two shape-flavour sliders are gone: a Look sets them, and
+     nobody was reaching for them by hand */
+  function syncShapeRows(){}
   shapeSeg.addEventListener("click", function(e){
     var btn = e.target.closest("button[data-shape]");
     if(!btn) return;
