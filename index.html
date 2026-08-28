@@ -52,6 +52,10 @@
     --accent-ink:#141413;
     --accent-text:#98492c;
     --danger:#8a2424;
+    /* selection is neutral ink, never the coral: a red ring on a
+       colour swatch reads as an error, not as "this one is on" */
+    --select-ring:#141413;
+    --shadow-card:0 1px 3px rgba(20,20,19,.06),0 12px 32px rgba(20,20,19,.07);
     --divider:rgba(31,30,29,.08);
     --track:#e8e6dc;
     --control-bg:#f0eee6;
@@ -95,6 +99,8 @@
       --accent-ink:#141413;
       --accent-text:#e08a6b;
       --danger:#e86b6b;
+      --select-ring:#ede9de;
+      --shadow-card:0 1px 3px rgba(0,0,0,.28),0 12px 32px rgba(0,0,0,.34);
       --divider:rgba(222,220,209,.10);
       --track:#1f1e1d;
       --control-bg:#1f1e1d;
@@ -123,6 +129,8 @@
     --accent-ink:#141413;
     --accent-text:#e08a6b;
     --danger:#e86b6b;
+    --select-ring:#ede9de;
+    --shadow-card:0 1px 3px rgba(0,0,0,.28),0 12px 32px rgba(0,0,0,.34);
     --divider:rgba(222,220,209,.10);
     --track:#1f1e1d;
     --control-bg:#1f1e1d;
@@ -202,17 +210,13 @@
 
   /* ---------- topbar ---------- */
   .topbar{
-    height:52px;flex:0 0 auto;
+    height:48px;flex:0 0 auto;
     display:flex;align-items:center;justify-content:space-between;gap:12px;
-    padding:0 16px;
-    background:var(--panel-bg);
-    backdrop-filter:blur(20px) saturate(180%);
-    -webkit-backdrop-filter:blur(20px) saturate(180%);
-    border-bottom:1px solid var(--panel-border);
-    box-shadow:var(--glass-edge);
+    padding:2px 20px 0;
+    background:transparent;
   }
   @supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
-    .topbar,.panel,.statusbar,.modal-backdrop,.modal,.kbd-pop,.swatch-pop,
+    .panel,.modal-backdrop,.modal,.kbd-pop,.swatch-pop,
     .cta-msg,.cam-chip{background:var(--panel-bg-solid);}
   }
   .topbar h1{
@@ -291,31 +295,45 @@
   }
 
   /* ---------- body: canvas left, inspector panel RIGHT ---------- */
-  .body{flex:1 1 auto;display:flex;min-height:0;}
+  /* Two cards floating on the page ground with air around them, not
+     two slabs welded to the window edges. The panel is the canvas
+     column's twin: same height, same corner, same shadow. */
+  .body{flex:1 1 auto;display:flex;min-height:0;gap:14px;padding:14px;}
 
   .panel{
     position:relative;
-    width:300px;min-width:180px;max-width:560px;
+    width:326px;min-width:260px;max-width:560px;
     flex:0 0 auto;
     display:flex;flex-direction:column;
     background:var(--panel-bg);
     backdrop-filter:blur(20px) saturate(180%);
     -webkit-backdrop-filter:blur(20px) saturate(180%);
-    border-left:1px solid var(--panel-border);
-    box-shadow:var(--glass-edge);
+    border:1px solid var(--panel-border);
+    border-radius:var(--r-lg);
+    box-shadow:var(--shadow-card);
+    overflow:hidden;
     min-height:0;
   }
   .panel-pinned{
     flex:0 0 auto;
     display:flex;flex-direction:column;gap:10px;
-    padding:12px 16px;
+    padding:14px 16px 12px;
     border-bottom:1px solid var(--divider);
   }
   .panel-scroll{
     flex:1 1 auto;min-height:0;
     overflow-y:auto;
-    padding:10px 16px 44px;
+    padding:14px 16px 20px;
   }
+  /* Export is the end of the flow, so it sits at the end of the
+     panel -- not in a topbar where it competed with the title. */
+  .panel-foot{
+    flex:0 0 auto;
+    padding:10px 16px;
+    border-top:1px solid var(--divider);
+    background:var(--panel-bg-solid);
+  }
+  .panel-foot .btn{width:100%;justify-content:center;}
   .panel-scroll::-webkit-scrollbar{width:8px;}
   .panel-scroll::-webkit-scrollbar-thumb{background:var(--control-bg-strong);border-radius:var(--r-pill);}
 
@@ -328,7 +346,7 @@
     content:"";position:absolute;top:0;left:0;width:3px;height:100%;
     background:transparent;transition:background var(--dur-fast) var(--ease);
   }
-  .rhandle:hover::after,.rhandle.active::after{background:var(--accent);opacity:.55;}
+  .rhandle:hover::after,.rhandle.active::after{background:var(--text-3);opacity:.5;}
 
   /* mobile bottom-sheet grip (hidden on desktop) */
   .sheet-grip{
@@ -467,25 +485,33 @@
   .text-field{
     background:var(--control-bg);
     border:1px solid transparent;
-    border-radius:var(--r-sm);
+    border-radius:var(--r-md);
     padding:8px 10px;
     min-height:36px;
     font-size:13px;color:var(--text);
     outline:none;
     transition:border-color var(--dur-fast) var(--ease),box-shadow var(--dur-fast) var(--ease);
   }
-  .text-field:focus{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent);}
+  .text-field:focus{border-color:var(--text-3);box-shadow:0 0 0 3px color-mix(in srgb, var(--text) 10%, transparent);}
   textarea.text-field{width:100%;resize:none;line-height:1.5;min-height:36px;}
   /* Text is a textarea now because it doubles as the Loop sequence, but
      it must still read as a single-line field until it holds more */
   .stepper textarea.text-field{
-    min-height:36px;padding-top:8px;padding-bottom:8px;overflow:hidden;
+    min-height:44px;padding-top:9px;padding-bottom:9px;overflow:hidden;
   }
 
   .stepper{display:flex;align-items:center;flex:1;min-width:0;}
-  /* single character: centered; longer text: left-aligned for readability */
-  .stepper .text-field{flex:1;min-width:0;text-align:center;font-weight:600;font-size:14px;}
-  .stepper.multi .text-field{text-align:left;font-weight:500;font-size:13px;}
+  /* One centred capital in a wide grey box read as an empty field.
+     The text is the subject of the tool, so it is set like type:
+     left-aligned, large, on its own line under its label. */
+  .stepper .text-field{
+    flex:1;min-width:0;
+    text-align:left;font-weight:560;font-size:17px;letter-spacing:-.01em;
+    padding:9px 12px;min-height:44px;line-height:1.35;
+  }
+  .stepper.multi .text-field{font-weight:500;font-size:14px;line-height:1.5;}
+  .text-block{display:flex;flex-direction:column;gap:8px;}
+  .text-block .sec-head{margin:0 2px 0;}
 
   .seed-field{
     flex:1;min-width:0;
@@ -524,7 +550,7 @@
   .swatch::before{content:"";position:absolute;inset:-7px;border-radius:50%;}
   .swatch:hover{transform:scale(1.08);}
   .swatch:active{transform:scale(.95);}
-  .swatch.editing{box-shadow:0 0 0 2px var(--panel-bg-solid),0 0 0 4px var(--accent);}
+  .swatch.editing{box-shadow:0 0 0 2px var(--panel-bg-solid),0 0 0 3.5px var(--select-ring);}
   .swatch.pop-in{animation:pop-in 180ms var(--ease-out-quint);}
   .swatch-x{
     position:absolute;top:-5px;right:-5px;z-index:2;
@@ -617,8 +643,10 @@
   .hexlabel{font-size:12px;color:var(--text-2);font-variant-numeric:tabular-nums;letter-spacing:.02em;}
 
   /* ---------- canvas area ---------- */
-  .canvas-wrap{flex:1 1 auto;display:flex;flex-direction:column;min-width:0;position:relative;}
-  .canvas-stage{position:relative;flex:1 1 auto;display:flex;align-items:center;justify-content:center;min-height:0;padding:24px;}
+  .canvas-wrap{
+    flex:1 1 auto;display:flex;flex-direction:column;min-width:0;position:relative;
+  }
+  .canvas-stage{position:relative;flex:1 1 auto;display:flex;align-items:center;justify-content:center;min-height:0;padding:6px;}
   canvas{
     max-width:100%;max-height:100%;
     border-radius:var(--r-lg);
@@ -627,16 +655,13 @@
   }
 
   .statusbar{
-    flex:0 0 auto;min-height:34px;
+    flex:0 0 auto;min-height:32px;
     display:flex;align-items:center;flex-wrap:wrap;gap:6px 14px;
     padding:4px 16px;
     font-size:11px;color:var(--text-2);
     font-variant-numeric:tabular-nums;
-    border-top:1px solid var(--divider);
-    background:var(--panel-bg);
-    backdrop-filter:blur(20px) saturate(180%);
-    -webkit-backdrop-filter:blur(20px) saturate(180%);
-    box-shadow:var(--glass-edge);
+    border-top:0;
+    background:transparent;
   }
   .statusbar b{color:var(--text);font-weight:600;}
   .statusbar .cell{display:flex;align-items:center;gap:5px;white-space:nowrap;}
@@ -748,7 +773,7 @@
      grip. Same rigid-glass treatment as the export sheet.
   ============================================================ */
   @media (max-width: 767px){
-    .body{display:block;position:relative;}
+    .body{display:block;position:relative;padding:0;gap:0;}
     .canvas-wrap{height:100%;}
     .canvas-stage{padding:12px 12px calc(var(--sheet-peek,216px) + 12px);}
     .canvas-cta{bottom:calc(var(--sheet-peek,216px) + 28px);}
@@ -760,7 +785,7 @@
       position:fixed;left:0;right:0;bottom:0;z-index:40;
       width:100% !important;min-width:0;max-width:none;
       height:var(--sheet-full,80dvh);
-      border-left:0;border-top:1px solid var(--panel-border);
+      border:0;border-top:1px solid var(--panel-border);
       border-radius:16px 16px 0 0;
       box-shadow:var(--glass-edge),var(--shadow-sheet);
       transform:translateY(var(--sheet-offset,0px));
@@ -769,53 +794,101 @@
     .panel.snap{transition:transform var(--dur-layout) var(--ease-out-quint);}
     .rhandle{display:none;}
     .sheet-grip{display:flex;}
-    .panel-pinned{padding:2px 14px 12px;}
-    .panel-scroll{padding:10px 14px 44px;}
-    .topbar{padding:0 12px;}
-    .statusbar{padding:4px 12px;}
+    /* the sheet slides down, so its bottom edge is off screen at every
+       detent but the last -- Export moves up next to the pinned block
+       so it is reachable from the first peek */
+    .sheet-grip{order:-1;}
+    .panel-pinned{order:0;padding:2px 14px 10px;}
+    .panel-foot{order:1;padding:0 14px 12px;border-top:0;background:transparent;}
+    .panel-scroll{order:2;padding:12px 14px calc(20px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--divider);}
+    .topbar{padding:2px 14px 0;}
+    .statusbar{padding:4px 14px;}
     /* export modal: near-fullscreen bottom sheet, same rigid-frame rule */
     .modal-backdrop{padding:10px;align-items:flex-end;}
     .modal{width:100%;max-width:none;height:min(94dvh,100%);}
     .kbd-pop{right:10px;}
   }
 
-  /* ---------- the two galleries: pick a design, not a parameter ---------- */
-  .pick{margin-top:14px;}
-  .pick-head{
+  /* ---------- the two galleries ----------
+     Shape and Colour used to be two rows of near-identical pills, so
+     nothing told you which axis you were changing. Now each gallery
+     shows what it owns: a Shape card renders its own particles in one
+     neutral ink, a Colour card is nothing but its palette on its own
+     ground. Neither scrolls sideways -- every card is on screen. */
+  .sec{margin-bottom:18px;}
+  .sec:last-child{margin-bottom:0;}
+  .sec-head{
+    display:flex;align-items:baseline;justify-content:space-between;gap:8px;
+    margin:0 2px 9px;
+  }
+  .sec-head .t{
     font-size:11px;font-weight:600;letter-spacing:.03em;text-transform:uppercase;
-    color:var(--text-3);margin:0 2px 7px;
+    color:var(--text-3);
   }
-  .look-chip{
-    display:flex;align-items:center;gap:7px;
-    padding:5px 11px 5px 6px;min-height:34px;
+  .sec-head .m{font-size:11px;color:var(--text-3);}
+  .gal{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+  .card{
+    position:relative;
+    border:0;padding:0;background:transparent;text-align:left;
+    display:flex;flex-direction:column;gap:6px;
+    border-radius:10px;
+    transition:transform var(--dur-tap) var(--ease);
   }
-  .look-chip.active{
-    background:var(--panel-bg-solid);color:var(--text);
-    box-shadow:var(--shadow-ctrl),0 0 0 1.5px var(--accent);
-  }
-  .look-sw,.theme-strip{
-    display:flex;align-items:center;gap:2px;
-    padding:3px;border-radius:5px;flex:0 0 auto;
-  }
-  .look-sw i,.theme-strip i{
-    display:block;width:6px;height:6px;border-radius:50%;
-  }
-  .theme-row{gap:6px;}
-  .theme-chip{
-    flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:4px;
-    padding:6px 8px 5px;border:0;border-radius:var(--r-sm);
+  .card:active{transform:scale(.97);}
+  .card .thumb{
+    position:relative;width:100%;aspect-ratio:11/7;
+    border-radius:9px;overflow:hidden;
     background:var(--control-bg);
-    transition:transform var(--dur-tap) var(--ease),box-shadow var(--dur-fast) var(--ease);
+    box-shadow:inset 0 0 0 1px var(--thumb-border);
+    transition:box-shadow var(--dur-fast) var(--ease);
   }
-  .theme-chip:hover{transform:translateY(-1px);}
-  .theme-chip.active{box-shadow:0 0 0 2px var(--accent);}
-  .theme-chip .theme-strip{padding:0;}
-  .theme-chip .theme-name{
-    font-size:10.5px;font-weight:500;letter-spacing:.01em;
+  .card:hover .thumb{box-shadow:inset 0 0 0 1px var(--text-3);}
+  .card .thumb canvas{
+    width:100%;height:100%;display:block;
+    border-radius:0;box-shadow:none;max-width:none;max-height:none;
   }
+  .card .cname{
+    font-size:11px;font-weight:500;color:var(--text-2);
+    padding-left:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  .card.active .cname{color:var(--text);font-weight:620;}
+  .card.active .thumb{
+    box-shadow:0 0 0 2px var(--panel-bg-solid),0 0 0 3.5px var(--select-ring);
+  }
+  .card .tick{
+    position:absolute;right:5px;bottom:5px;
+    width:15px;height:15px;border-radius:50%;
+    background:var(--select-ring);color:var(--panel-bg-solid);
+    display:none;align-items:center;justify-content:center;
+  }
+  .card.active .tick{display:flex;}
+  /* a palette card is pure colour: its ground, then its mix */
+  .pal-mix{
+    position:absolute;left:7px;right:7px;top:25%;bottom:25%;
+    display:flex;border-radius:5px;overflow:hidden;
+    box-shadow:0 1px 2px rgba(20,20,19,.16);
+  }
+  .pal-mix i{display:block;height:100%;flex:1 1 auto;min-width:0;}
+  .pal-del{
+    position:absolute;top:4px;right:4px;z-index:2;
+    width:16px;height:16px;border:0;border-radius:50%;padding:0;
+    background:var(--select-ring);color:var(--panel-bg-solid);
+    display:flex;align-items:center;justify-content:center;
+    font-size:11px;line-height:1;opacity:0;
+    transition:opacity var(--dur-fast) var(--ease);
+  }
+  .card:hover .pal-del,.pal-del:focus-visible{opacity:1;}
+  .card-add .thumb{
+    background:transparent;
+    box-shadow:inset 0 0 0 1px var(--thumb-border);
+    display:flex;align-items:center;justify-content:center;
+    color:var(--text-3);
+  }
+  .card-add:hover .thumb{color:var(--text);box-shadow:inset 0 0 0 1px var(--text-3);}
+  .card-add .thumb span{font-size:17px;line-height:1;font-weight:400;}
   .sub-head{
     font-size:11px;font-weight:600;letter-spacing:.03em;text-transform:uppercase;
-    color:var(--text-3);margin:18px 2px 10px;
+    color:var(--text-3);margin:15px 2px 9px;
   }
   .sub-head:first-child{margin-top:2px;}
 
@@ -968,14 +1041,6 @@
     <h1>Letter Shaper Studio</h1>
     <div class="topbar-actions">
       <button type="button" class="icon-btn" id="helpBtn" aria-label="Keyboard shortcuts" title="Keyboard shortcuts">?</button>
-      <button type="button" class="btn btn-ghost btn-compact" id="exportBtn">
-        <svg width="12" height="14" viewBox="0 0 12 14" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M6 1.2v7.6"/>
-          <path d="M3.4 3.6 6 1.2l2.6 2.4"/>
-          <path d="M2.2 6.6H1.4v6.2h9.2V6.6h-.8"/>
-        </svg>
-        Export
-      </button>
       <div class="theme-seg" id="themeSeg" role="group" aria-label="Theme">
         <button type="button" data-theme-btn="light" aria-label="Light" title="Light">
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" aria-hidden="true">
@@ -1046,8 +1111,11 @@
       <button type="button" class="sheet-grip" id="sheetGrip" aria-label="Resize panel sheet"><span></span></button>
 
       <div class="panel-pinned">
-        <div class="row" style="margin-bottom:0">
-          <label for="letterInput">Text</label>
+        <div class="text-block">
+          <div class="sec-head">
+            <span class="t">Text</span>
+            <span class="m" id="textMeta">1 phrase</span>
+          </div>
           <div class="stepper" id="textStepper">
             <textarea class="text-field" id="letterInput" rows="1" maxlength="200" spellcheck="false" title="Up / Down cycles a single character" aria-label="Text. In Loop, one phrase per line">C</textarea>
           </div>
@@ -1058,7 +1126,7 @@
             <button type="button" data-mode="hover">Hover</button>
             <button type="button" data-mode="hand">Hand</button>
           </div>
-          <button class="btn btn-primary btn-compact" id="playBtn" aria-pressed="false" title="Play (Space)" style="min-width:88px">
+          <button class="btn btn-primary btn-compact" id="playBtn" aria-pressed="false" title="Play (Space)" style="min-width:84px">
             <span class="icon-swap" aria-hidden="true">
               <svg id="playIcon" width="11" height="12" viewBox="0 0 11 12" fill="currentColor"><path d="M1.6.9a1 1 0 0 1 1.5-.86l7.4 4.6a1 1 0 0 1 0 1.72l-7.4 4.6A1 1 0 0 1 1.6 10.1Z"/></svg>
               <svg id="pauseIcon" width="10" height="12" viewBox="0 0 10 12" fill="currentColor"><rect x="0.5" y="0.5" width="3.2" height="11" rx="1.1"/><rect x="6.3" y="0.5" width="3.2" height="11" rx="1.1"/></svg>
@@ -1080,15 +1148,6 @@
           <div class="collapse-inner">
             <p class="hint" style="margin-top:0">Turn the camera on and shape the letter with your hand.</p>
           </div>
-        </div>
-
-        <div class="pick">
-          <div class="pick-head"><span>Look</span></div>
-          <div class="looks-row" id="looksRow" aria-label="Looks"></div>
-        </div>
-        <div class="pick">
-          <div class="pick-head"><span>Colour</span></div>
-          <div class="looks-row theme-row" id="themeRow" aria-label="Colour themes"></div>
         </div>
       </div>
 
@@ -1122,34 +1181,59 @@
                   <div class="ctl-head"><label for="handStrength">Strength</label><span class="val" id="handStrengthVal">0.50</span></div>
                   <input type="range" id="handStrength" min="0" max="1" step="0.02" value="0.5">
                 </div>
-                <p class="hint">Detection is skin tone plus movement, on a 160 x 120 copy of the frame. Nothing is uploaded and no frame is stored. If it picks the wrong thing, click it in the preview.</p>
+                <p class="hint">Skin tone plus movement, read from a small copy of the frame. Nothing leaves the tab. If it picks the wrong thing, click the right one in the preview.</p>
               </div>
             </div>
+          </div>
+        </section>
+
+        <!-- Shape: what the particles are. Colour lives one section down;
+             the two used to be indistinguishable rows of pills. -->
+        <section class="sec" id="shapeSec">
+          <div class="sec-head">
+            <span class="t">Shape</span>
+            <span class="m" id="shapeMeta">Circle</span>
+          </div>
+          <div class="gal" id="looksRow" aria-label="Shape presets"></div>
+          <div class="sub-head">Particle</div>
+          <div class="seg seg-small" id="shapeSeg" role="group" aria-label="Particle shape">
+            <button type="button" data-shape="circle" class="active">Circle</button>
+            <button type="button" data-shape="square">Square</button>
+            <button type="button" data-shape="ascii">ASCII</button>
+          </div>
+          <div class="ctl" style="margin-top:14px">
+            <div class="ctl-head"><label for="scale">Scale</label><span class="val" id="scaleVal">15 px · 2920</span></div>
+            <input type="range" id="scale" min="0" max="1" step="0.01" value="0.5">
+          </div>
+          <p class="hint">Bigger particles, fewer of them.</p>
+        </section>
+
+        <!-- Colour: nothing but colour. Editing the current palette sits
+             directly under the gallery it belongs to. -->
+        <section class="sec" id="colourSec">
+          <div class="sec-head">
+            <span class="t">Colour</span>
+            <span class="m" id="paletteMeta">Classic</span>
+          </div>
+          <div class="gal" id="themeRow" aria-label="Colour palettes"></div>
+          <div class="sub-head">This palette</div>
+          <div class="swatches" id="swatches"></div>
+          <p class="hint">Click a dot to change that colour or how often it appears. Save the set as a palette of your own with + above.</p>
+          <div class="sub-head">Background</div>
+          <div class="color-input-wrap">
+            <input type="color" id="bgColor" value="#d6cfc5" aria-label="Background color" />
+            <span class="hexlabel" id="bgColorVal">#D6CFC5</span>
           </div>
         </section>
 
         <section class="group" style="--i:2" data-group="adjust">
           <button type="button" class="group-head" aria-expanded="false" aria-controls="adjustBody">
             <svg class="chev" width="9" height="9" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 1.5 7 5 3.5 8.5"/></svg>
-            <span>Adjust</span>
+            <span>Motion</span>
           </button>
           <div class="collapse" id="adjustBody">
             <div class="collapse-inner">
               <div class="group-body">
-                <div class="seg" id="shapeSeg" role="group" aria-label="Shape type">
-                  <button type="button" data-shape="circle" class="active">Circle</button>
-                  <button type="button" data-shape="square">Square</button>
-                  <button type="button" data-shape="ascii">ASCII</button>
-                </div>
-                <div style="height:14px"></div>
-                <div class="ctl">
-                  <div class="ctl-head"><label for="density">Density</label><span class="val" id="densityVal">2920</span></div>
-                  <input type="range" id="density" min="0" max="1" step="0.01" value="0.46">
-                </div>
-                <div class="ctl">
-                  <div class="ctl-head"><label for="grain">Grain</label><span class="val" id="grainVal">15</span></div>
-                  <input type="range" id="grain" min="0" max="1" step="0.01" value="0.5">
-                </div>
                 <div class="ctl">
                   <div class="ctl-head"><label for="liveliness">Liveliness</label><span class="val" id="livelinessVal">0.46</span></div>
                   <input type="range" id="liveliness" min="0" max="1" step="0.01" value="0.46">
@@ -1177,26 +1261,17 @@
           </div>
         </section>
 
-        <section class="group" style="--i:3" data-group="colours">
-          <button type="button" class="group-head" aria-expanded="false" aria-controls="coloursBody">
-            <svg class="chev" width="9" height="9" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 1.5 7 5 3.5 8.5"/></svg>
-            <span>Colours</span>
-          </button>
-          <div class="collapse" id="coloursBody">
-            <div class="collapse-inner">
-              <div class="group-body">
-                <div class="swatches" id="swatches"></div>
-                <p class="hint">Click a dot to change that colour or how often it appears. Picking a theme above replaces the whole set.</p>
-                <div class="sub-head">Background</div>
-                <div class="color-input-wrap">
-                  <input type="color" id="bgColor" value="#d6cfc5" aria-label="Background color" />
-                  <span class="hexlabel" id="bgColorVal">#D6CFC5</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
+      </div>
 
+      <div class="panel-foot">
+        <button type="button" class="btn btn-primary" id="exportBtn">
+          <svg width="12" height="14" viewBox="0 0 12 14" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M6 1.2v7.6"/>
+            <path d="M3.4 3.6 6 1.2l2.6 2.4"/>
+            <path d="M2.2 6.6H1.4v6.2h9.2V6.6h-.8"/>
+          </svg>
+          Export
+        </button>
       </div>
     </aside>
   </div>
@@ -2327,32 +2402,54 @@
     var lum = (0.299*((n>>16)&255) + 0.587*((n>>8)&255) + 0.114*(n&255)) / 255;
     return lum > 0.55 ? "#141413" : "#faf9f5";
   }
+  /* Palettes you make yourself sit in the same gallery as the built-in
+     ones and outlive the tab. A palette is colours plus the ground it
+     was designed against -- saving one without its background would
+     let the two drift apart again. */
+  var PAL_KEY = "lsg.palettes.v1";
+  var USER_THEMES = (function(){
+    try{
+      var raw = localStorage.getItem(PAL_KEY);
+      var list = raw ? JSON.parse(raw) : null;
+      if(!list || !list.length) return [];
+      return list.filter(function(t){
+        return t && t.id && t.background && t.colors && t.colors.length;
+      }).map(function(t){
+        return { id:t.id, name:t.name || "Mine", background:t.background,
+                 colors:clonePalette(t.colors), user:true };
+      });
+    }catch(err){ return []; }
+  })();
+  function saveUserThemes(){
+    try{ localStorage.setItem(PAL_KEY, JSON.stringify(USER_THEMES)); }catch(err){}
+  }
+  function allThemes(){ return THEMES.concat(USER_THEMES); }
   function themeById(id){
-    for(var i=0;i<THEMES.length;i++) if(THEMES[i].id === id) return THEMES[i];
+    var list = allThemes();
+    for(var i=0;i<list.length;i++) if(list[i].id === id) return list[i];
     return THEMES[0];
   }
 
+  /* A Look is a form: shape, size, count, how much it trembles. It no
+     longer carries a palette -- Shape and Colour are separate choices
+     now, and a preset that quietly repainted your colours made them
+     look like the same control. */
   var LOOKS = [
     { name:"Confetti", s:{ shape:"circle", minSize:0.5, maxSize:6, rotationJitter:60, brickBars:5,
         count:5200, edgeFeather:8, minOpacity:0.85, trembleAmp:5, trembleSpeed:2.2, breathAmp:0.3,
-        holdTime:1.8, scatterTime:1.1, reformTime:1.1, scatterRange:0.27,
-        theme:"classic" } },
+        holdTime:1.8, scatterTime:1.1, reformTime:1.1, scatterRange:0.27 } },
     { name:"Brickwork", s:{ shape:"square", minSize:6, maxSize:16, rotationJitter:60, brickBars:6,
         count:1600, edgeFeather:4, minOpacity:1, trembleAmp:3.5, trembleSpeed:1.4, breathAmp:0.2,
-        holdTime:2.2, scatterTime:1.2, reformTime:1.2, scatterRange:0.2,
-        theme:"classic" } },
+        holdTime:2.2, scatterTime:1.2, reformTime:1.2, scatterRange:0.2 } },
     { name:"Numerals", s:{ shape:"ascii", minSize:2, maxSize:12, rotationJitter:35, brickBars:5,
         count:3400, edgeFeather:6, minOpacity:0.9, trembleAmp:7, trembleSpeed:2.6, breathAmp:0.4,
-        holdTime:1.6, scatterTime:1, reformTime:1.1, scatterRange:0.34,
-        theme:"ink" } },
-    { name:"Morandi mist", s:{ shape:"circle", minSize:2, maxSize:18, rotationJitter:60, brickBars:5,
+        holdTime:1.6, scatterTime:1, reformTime:1.1, scatterRange:0.34 } },
+    { name:"Mist", s:{ shape:"circle", minSize:2, maxSize:18, rotationJitter:60, brickBars:5,
         count:2200, edgeFeather:12, minOpacity:0.7, trembleAmp:8, trembleSpeed:1.2, breathAmp:0.5,
-        holdTime:2, scatterTime:1.4, reformTime:1.4, scatterRange:0.3,
-        theme:"morandi" } },
-    { name:"Coarse grain", s:{ shape:"circle", minSize:8, maxSize:22, rotationJitter:60, brickBars:5,
+        holdTime:2, scatterTime:1.4, reformTime:1.4, scatterRange:0.3 } },
+    { name:"Pebbles", s:{ shape:"circle", minSize:8, maxSize:22, rotationJitter:60, brickBars:5,
         count:900, edgeFeather:3, minOpacity:1, trembleAmp:4, trembleSpeed:1.8, breathAmp:0.25,
-        holdTime:1.8, scatterTime:1.1, reformTime:1.1, scatterRange:0.24,
-        theme:"sea" } }
+        holdTime:1.8, scatterTime:1.1, reformTime:1.1, scatterRange:0.24 } }
   ];
 
   var LETTER_CYCLE = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
@@ -2610,20 +2707,37 @@
      pair, because the raw sliders are gone: if Grain snapped minSize to
      the bottom of its range, one nudge would flatten Brickwork's chunky
      min 6 / max 16 into something it was never meant to be. */
+  /* The Scale curve: 6px grain to 26px pebbles, count moving the other
+     way. Halve the particle and you get twice as many of them, which
+     keeps the letter about as solid at either end. The ends are chosen
+     so the count never runs into its own ceiling -- a slider whose
+     first third does nothing is worse than a shorter slider. */
+  var SCALE_MIN = 6, SCALE_MAX = 26, SCALE_K = 36000;
+  function countForScale(size){
+    var n = Math.round(SCALE_K / size);
+    return Math.max(800, Math.min(6000, n));
+  }
+
   var DERIVED = [
-    { id:"density", val:"densityVal", structural:true,
-      read:function(){ return (S.count - 300) / 5700; },
-      write:function(t){ S.count = Math.round(300 + t * 5700); },
-      text:function(){ return S.count; } },
-    { id:"grain", val:"grainVal", structural:true,
-      read:function(){ return (S.maxSize - 5) / 20; },
+    /* Scale replaces the old Density and Grain pair. Asking someone for
+       a particle count is asking them to do the arithmetic the tool
+       should do: zoom in and the dots get big and few, zoom out and
+       they get small and many. Coverage (count x area) is held roughly
+       constant so the letter stays as filled as you left it. */
+    { id:"scale", val:"scaleVal", structural:true,
+      read:function(){
+        return Math.log(Math.max(SCALE_MIN, Math.min(SCALE_MAX, S.maxSize)) / SCALE_MIN) /
+               Math.log(SCALE_MAX / SCALE_MIN);
+      },
       write:function(t){
         var ratio = S.maxSize > 0 ? S.minSize / S.maxSize : 0.08;
         if(ratio > 0.9) ratio = 0.9;
-        S.maxSize = +(5 + t * 20).toFixed(1);
+        var size = SCALE_MIN * Math.pow(SCALE_MAX / SCALE_MIN, t);
+        S.maxSize = +size.toFixed(1);
         S.minSize = +Math.max(0.5, S.maxSize * ratio).toFixed(1);
+        S.count = countForScale(S.maxSize);
       },
-      text:function(){ return S.maxSize; } },
+      text:function(){ return S.maxSize + " px · " + S.count; } },
     { id:"liveliness", val:"livelinessVal", structural:false,
       read:function(){ return S.trembleAmp / 14; },
       write:function(t){
@@ -2739,6 +2853,7 @@
         if(S.colors.length <= 2) return;
         closeSwatchPop();
         S.colors.splice(idx,1);
+        clearTheme();
         renderSwatches();
         rebuild();
         commit();
@@ -2759,6 +2874,7 @@
       /* the one deliberate carve-out from seeded determinism */
       var hex = "#" + Math.floor(Math.random()*0xffffff).toString(16).padStart(6,"0");
       S.colors.push({ name:"custom", hex:hex, w:2 });
+      clearTheme();
       renderSwatches();
       rebuild();
       commit();
@@ -2790,7 +2906,9 @@
     if(editIndex < 0) return;
     S.colors[editIndex].hex = swatchColor.value;
     S.colors[editIndex].name = "custom";
+    clearTheme();
     renderSwatches();
+    paintCoachDots();
     rebuild();
   });
   swatchColor.addEventListener("change", function(){ commit(); });
@@ -2800,6 +2918,7 @@
     if(!btn || editIndex < 0) return;
     setSegActive(weightSeg, btn);
     S.colors[editIndex].w = parseInt(btn.getAttribute("data-w"),10);
+    clearTheme();
     renderSwatches();
     rebuild();
     commit();
@@ -2809,6 +2928,7 @@
     if(editIndex < 0 || S.colors.length <= 2) return;
     S.colors.splice(editIndex,1);
     closeSwatchPop();
+    clearTheme();
     renderSwatches();
     rebuild();
     commit();
@@ -2836,6 +2956,7 @@
     renderSwatches();
     syncBackground();
     paintCoachDots();
+    syncMeta();
     rebuild();
     if(record !== false) commit();
   }
@@ -2849,34 +2970,116 @@
       dots[i].style.background = cols[i % cols.length].hex;
     }
   }
+  function paletteMetaText(){
+    return S.theme ? themeById(S.theme).name : "Custom";
+  }
   function renderThemes(){
     themeRow.innerHTML = "";
-    THEMES.forEach(function(th){
-      var b = document.createElement("button");
-      b.type = "button";
-      b.className = "theme-chip" + (th.id === S.theme ? " active" : "");
-      b.title = th.name;
-      b.setAttribute("aria-label", "Colour theme " + th.name);
-      b.setAttribute("aria-pressed", th.id === S.theme ? "true" : "false");
-      b.style.background = th.background;
-      var strip = document.createElement("span");
-      strip.className = "theme-strip";
-      /* the five heaviest colours, so the chip previews what you get */
-      th.colors.slice().sort(function(a,c){ return c.w - a.w; }).slice(0,5)
-        .forEach(function(c){
-          var d = document.createElement("i");
-          d.style.background = c.hex;
-          strip.appendChild(d);
-        });
-      b.appendChild(strip);
+    allThemes().forEach(function(th){
+      var card = document.createElement("button");
+      card.type = "button";
+      card.className = "card" + (th.id === S.theme ? " active" : "");
+      card.title = th.name;
+      card.setAttribute("aria-label", "Colour palette " + th.name);
+      card.setAttribute("aria-pressed", th.id === S.theme ? "true" : "false");
+
+      /* the card is the palette and nothing else: its own ground, and
+         the mix laid on it as a paint chip, each colour as wide as it
+         is frequent */
+      var thumb = document.createElement("span");
+      thumb.className = "thumb";
+      thumb.style.background = th.background;
+      var mix = document.createElement("span");
+      mix.className = "pal-mix";
+      th.colors.slice().sort(function(a,c){ return c.w - a.w; }).forEach(function(c){
+        var i = document.createElement("i");
+        i.style.background = c.hex;
+        i.style.flexGrow = String(c.w || 1);
+        mix.appendChild(i);
+      });
+      thumb.appendChild(mix);
+      thumb.appendChild(tickMark());
+      card.appendChild(thumb);
+
       var nm = document.createElement("span");
-      nm.className = "theme-name";
-      nm.style.color = readableInk(th.background);
+      nm.className = "cname";
       nm.textContent = th.name;
-      b.appendChild(nm);
-      b.addEventListener("click", function(){ applyTheme(th.id); });
-      themeRow.appendChild(b);
+      card.appendChild(nm);
+
+      if(th.user){
+        var del = document.createElement("span");
+        del.className = "pal-del";
+        del.setAttribute("role", "button");
+        del.setAttribute("tabindex", "0");
+        del.setAttribute("aria-label", "Delete palette " + th.name);
+        del.title = "Delete palette";
+        del.textContent = "\u00d7";
+        var remove = function(e){
+          e.stopPropagation();
+          e.preventDefault();
+          for(var i=0;i<USER_THEMES.length;i++){
+            if(USER_THEMES[i].id === th.id){ USER_THEMES.splice(i,1); break; }
+          }
+          saveUserThemes();
+          if(S.theme === th.id) S.theme = "";
+          renderThemes();
+          syncMeta();
+        };
+        del.addEventListener("click", remove);
+        del.addEventListener("keydown", function(e){
+          if(e.key === "Enter" || e.key === " ") remove(e);
+        });
+        thumb.appendChild(del);
+      }
+
+      card.addEventListener("click", function(){ applyTheme(th.id); });
+      themeRow.appendChild(card);
     });
+
+    /* + saves what is on screen as a palette of your own */
+    var add = document.createElement("button");
+    add.type = "button";
+    add.className = "card card-add";
+    add.title = "Save these colours as a palette";
+    add.setAttribute("aria-label", "Save these colours as a palette");
+    var at = document.createElement("span");
+    at.className = "thumb";
+    var plus = document.createElement("span");
+    plus.textContent = "+";
+    at.appendChild(plus);
+    add.appendChild(at);
+    var an = document.createElement("span");
+    an.className = "cname";
+    an.textContent = "Save palette";
+    add.appendChild(an);
+    add.addEventListener("click", saveCurrentPalette);
+    themeRow.appendChild(add);
+  }
+  function tickMark(){
+    var t = document.createElement("span");
+    t.className = "tick";
+    t.innerHTML = '<svg width="8" height="8" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1.6 5.2 4 7.6 8.4 2.6"/></svg>';
+    return t;
+  }
+  function saveCurrentPalette(){
+    var n = USER_THEMES.length + 1;
+    var id = "user-" + Date.now().toString(36);
+    USER_THEMES.push({
+      id:id, name:"Mine " + n, background:S.background,
+      colors:clonePalette(S.colors), user:true
+    });
+    saveUserThemes();
+    S.theme = id;
+    renderThemes();
+    syncMeta();
+  }
+  /* editing a colour by hand means the result is no longer that palette,
+     exactly as editing a parameter drops the Shape preset */
+  function clearTheme(){
+    if(!S.theme) return;
+    S.theme = "";
+    renderThemes();
+    syncMeta();
   }
 
   /* Background. The preset row is gone: a theme now carries the ground
@@ -2892,7 +3095,7 @@
   bgColorEl.addEventListener("input", function(){
     S.background = bgColorEl.value;
     syncBackground();
-    clearLook();
+    clearTheme();
     pushLive();
   });
   bgColorEl.addEventListener("change", function(){ commit(); });
@@ -2901,46 +3104,128 @@
      Looks
   ============================================================ */
   var looksRow = document.getElementById("looksRow");
+
+  /* ---- the Shape preview ------------------------------------------
+     A Shape card has to answer "what will the particles look like",
+     and no arrangement of coloured pills ever did. So each card draws
+     its own preset -- same shapes, same size spread, same rotation --
+     in one neutral ink on a letterform, which is exactly the axis the
+     gallery owns. Colour is the section below; it stays out of here. */
+  var THUMB_W = 110, THUMB_H = 70;
+  var maskCache = null;
+  function letterMask(){
+    if(maskCache) return maskCache;
+    var m = document.createElement("canvas");
+    m.width = THUMB_W; m.height = THUMB_H;
+    var mc = m.getContext("2d");
+    mc.fillStyle = "#000";
+    mc.textAlign = "center";
+    mc.textBaseline = "middle";
+    mc.font = "600 " + Math.round(THUMB_H * 0.95) + "px \"LS Sans\", system-ui, sans-serif";
+    mc.fillText("A", THUMB_W/2, THUMB_H/2 + THUMB_H*0.03);
+    maskCache = mc.getImageData(0, 0, THUMB_W, THUMB_H).data;
+    return maskCache;
+  }
+  var THUMB_GLYPHS = "01234789";
+  function paintLookThumb(cv, look){
+    var dpr = Math.max(2, Math.min(3, window.devicePixelRatio || 1));
+    cv.width = Math.round(THUMB_W * dpr);
+    cv.height = Math.round(THUMB_H * dpr);
+    var g = cv.getContext("2d");
+    g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    g.clearRect(0, 0, THUMB_W, THUMB_H);
+
+    var mask = letterMask();
+    var css = getComputedStyle(document.documentElement);
+    var ink = (css.getPropertyValue("--text") || "#141413").trim();
+
+    var p = look.s;
+    /* the preview is 1/7 of the canvas, so the dots are scaled to match
+       and the count is thinned to keep the same coverage */
+    var k = THUMB_W / 1200;
+    var lo = Math.max(0.6, p.minSize * k * 3.4);
+    var hi = Math.max(lo + 0.5, p.maxSize * k * 3.4);
+    var n = Math.round(p.count * k * k * 6.9);
+    n = Math.max(55, Math.min(420, n));
+
+    var seed = 20250828;
+    function rnd(){ seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; }
+
+    g.fillStyle = ink;
+    var placed = 0, guard = 0;
+    while(placed < n && guard < n * 40){
+      guard++;
+      var x = rnd() * THUMB_W, y = rnd() * THUMB_H;
+      var idx = ((y|0) * THUMB_W + (x|0)) * 4 + 3;
+      if(mask[idx] < 120) continue;
+      placed++;
+      var d = lo + (hi - lo) * Math.pow(rnd(), 1.4);
+      g.globalAlpha = 0.5 + 0.5 * rnd();
+      if(p.shape === "square"){
+        var rot = (rnd() - 0.5) * (p.rotationJitter || 0) * Math.PI / 180;
+        g.save(); g.translate(x, y); g.rotate(rot);
+        g.fillRect(-d/2, -d/2, d, d);
+        g.restore();
+      } else if(p.shape === "ascii"){
+        var ch = THUMB_GLYPHS.charAt((rnd() * THUMB_GLYPHS.length) | 0);
+        g.save(); g.translate(x, y);
+        g.rotate((rnd() - 0.5) * (p.rotationJitter || 0) * Math.PI / 180);
+        g.font = "600 " + Math.max(4, d * 1.9).toFixed(1) + "px \"LS Mono\", monospace";
+        g.textAlign = "center"; g.textBaseline = "middle";
+        g.fillText(ch, 0, 0);
+        g.restore();
+      } else {
+        g.beginPath();
+        g.arc(x, y, d/2, 0, Math.PI*2);
+        g.fill();
+      }
+    }
+    g.globalAlpha = 1;
+  }
+
+  function shapeMetaText(){
+    if(S.look) return S.look;
+    return S.shape === "ascii" ? "ASCII" : (S.shape === "square" ? "Square" : "Circle");
+  }
   function renderLooks(){
     looksRow.innerHTML = "";
     LOOKS.forEach(function(look){
-      var th = themeById(look.s.theme);
-      var chip = document.createElement("button");
-      chip.type = "button";
-      chip.className = "look-chip" + (look.name === S.look ? " active" : "");
-      chip.setAttribute("aria-pressed", look.name === S.look ? "true" : "false");
-      chip.title = look.name;
-      /* a Look is a whole design, so the chip shows its ground and the
-         shape of its particles rather than only its name */
-      var sw = document.createElement("span");
-      sw.className = "look-sw";
-      sw.style.background = th.background;
-      th.colors.slice(0, 3).forEach(function(c){
-        var d = document.createElement("i");
-        d.style.background = c.hex;
-        if(look.s.shape === "square") d.style.borderRadius = "1px";
-        sw.appendChild(d);
-      });
-      chip.appendChild(sw);
+      var card = document.createElement("button");
+      card.type = "button";
+      card.className = "card" + (look.name === S.look ? " active" : "");
+      card.setAttribute("aria-pressed", look.name === S.look ? "true" : "false");
+      card.title = look.name;
+
+      var thumb = document.createElement("span");
+      thumb.className = "thumb";
+      var cv = document.createElement("canvas");
+      thumb.appendChild(cv);
+      thumb.appendChild(tickMark());
+      card.appendChild(thumb);
+
       var nm = document.createElement("span");
+      nm.className = "cname";
       nm.textContent = look.name;
-      chip.appendChild(nm);
-      chip.addEventListener("click", function(){ applyLook(look); });
-      looksRow.appendChild(chip);
+      card.appendChild(nm);
+
+      paintLookThumb(cv, look);
+      card.addEventListener("click", function(){ applyLook(look); });
+      looksRow.appendChild(card);
     });
+  }
+
+  /* the previews are drawn in the page's ink, so they follow the
+     light / dark switch rather than staying black on a dark panel */
+  function repaintLookThumbs(){
+    var cvs = looksRow.querySelectorAll("canvas");
+    for(var i=0;i<cvs.length && i<LOOKS.length;i++) paintLookThumb(cvs[i], LOOKS[i]);
   }
 
   function applyLook(look){
     S.look = look.name;
-    Object.keys(look.s).forEach(function(k){
-      if(k === "theme"){
-        S.theme = look.s.theme;
-        S.colors = clonePalette(themeById(look.s.theme).colors);
-        S.background = themeById(look.s.theme).background;
-      } else {
-        S[k] = look.s[k];
-      }
-    });
+    /* colours are deliberately untouched: picking a Shape must not
+       repaint the palette you chose */
+    Object.keys(look.s).forEach(function(k){ S[k] = look.s[k]; });
     closeSwatchPop();
     syncAllControls();
     rebuild();
@@ -2948,9 +3233,17 @@
   }
   /* any manual change means the result is no longer that preset */
   function clearLook(){
-    if(!S.look) return;
+    if(!S.look){ syncMeta(); return; }
     S.look = "";
     renderLooks();
+    syncMeta();
+  }
+  /* the two one-word readouts beside the section titles: what is on */
+  function syncMeta(){
+    var a = document.getElementById("shapeMeta");
+    if(a) a.textContent = shapeMetaText();
+    var b = document.getElementById("paletteMeta");
+    if(b) b.textContent = paletteMetaText();
   }
 
   /* ============================================================
@@ -2971,15 +3264,20 @@
   var spreadRow = document.getElementById("spreadRow");
 
   function syncTextAlign(){
-    var single = S.text.length === 1 && S.phrases.length === 1;
-    letterInput.style.textAlign = single ? "center" : "left";
+    /* always left now -- see .stepper .text-field */
+    letterInput.style.textAlign = "left";
   }
   function syncStepper(){
-    /* single character centres and sets big; anything longer reads left */
+    /* one character sets large; a phrase or a list sets smaller */
     textStepper.classList.toggle("multi", !(S.text.length === 1 && S.phrases.length === 1));
     /* one line per phrase, up to four, so the field shows what it holds */
     var rows = Math.min(4, Math.max(1, letterInput.value.split("\n").length));
     letterInput.rows = rows;
+    var meta = document.getElementById("textMeta");
+    if(meta){
+      var n = S.phrases.length;
+      meta.textContent = n > 1 ? n + " phrases" : (S.text.length + (S.text.length === 1 ? " character" : " characters"));
+    }
   }
   /* Text and Sequence were two fields defining the same thing. There is
      one now: every non-empty line is a phrase, and Loop cycles them. */
@@ -3267,6 +3565,7 @@
     renderSwatches();
     syncBackground();
     paintCoachDots();
+    syncMeta();
   }
 
   /* ============================================================
@@ -3298,7 +3597,16 @@
     var mode = btn.getAttribute("data-theme-btn");
     if(mode === "auto") document.documentElement.removeAttribute("data-theme");
     else document.documentElement.setAttribute("data-theme", mode);
+    /* the Shape previews are drawn in the page ink, so they have to be
+       repainted when the page ink changes */
+    requestAnimationFrame(repaintLookThumbs);
   });
+  if(window.matchMedia){
+    var mqDark = window.matchMedia("(prefers-color-scheme: dark)");
+    var onScheme = function(){ requestAnimationFrame(repaintLookThumbs); };
+    if(mqDark.addEventListener) mqDark.addEventListener("change", onScheme);
+    else if(mqDark.addListener) mqDark.addListener(onScheme);
+  }
 
   /* ============================================================
      Keyboard shortcuts popover
@@ -3355,8 +3663,10 @@
   function measurePeek(){
     var pinned = panel.querySelector(".panel-pinned");
     var grip = document.getElementById("sheetGrip");
+    var foot = panel.querySelector(".panel-foot");
     if(!pinned) return 0.22;
     var need = pinned.getBoundingClientRect().height +
+               (foot ? foot.getBoundingClientRect().height : 0) +
                (grip ? grip.getBoundingClientRect().height : 0) + 14;
     var frac = need / window.innerHeight;
     return Math.max(0.22, Math.min(0.7, frac));
@@ -4035,6 +4345,7 @@
   syncBackground();
   syncDerived();
   paintCoachDots();
+  syncMeta();
   syncTextAlign();
   syncStepper();
   syncShapeRows();
