@@ -1162,16 +1162,16 @@
                   <div class="ctl-head"><label for="scatterRange">Spread</label><span class="val" id="scatterRangeVal">0.27</span></div>
                   <input type="range" id="scatterRange" min="0" max="0.8" step="0.01" value="0.27">
                 </div>
-                <div class="quick-row" style="margin-bottom:14px">
-                  <label for="seedInput">Seed</label>
-                  <input class="text-field seed-field" id="seedInput" inputmode="numeric" autocomplete="off" spellcheck="false" value="88172645" aria-label="Random seed, press Enter to apply" title="Seed (Up / Down to step)" />
-                  <button class="btn btn-ghost btn-compact" id="reseedBtn" title="New random seed">
+                <div class="quick-row" style="margin-bottom:4px">
+                  <label>Composition</label>
+                  <button class="btn btn-ghost btn-compact" id="reseedBtn" title="Rearrange the particles (undo brings the last one back)">
                     <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                       <path d="M10.8 6a4.8 4.8 0 1 1-1.4-3.4"/><path d="M10.9 .9v2.2H8.7"/>
                     </svg>
-                    Reseed
+                    Shuffle
                   </button>
                 </div>
+                <p class="hint">Same letter and colours, a different arrangement of the dots.</p>
               </div>
             </div>
           </div>
@@ -1206,7 +1206,6 @@
   <div class="kbd-row"><span>Play / Pause</span><kbd>Space</kbd></div>
   <div class="kbd-row"><span>Undo</span><kbd>⌘Z</kbd></div>
   <div class="kbd-row"><span>Redo</span><kbd>⇧⌘Z</kbd></div>
-  <div class="kbd-row"><span>Step seed (in Seed)</span><kbd>↑ ↓</kbd></div>
   <div class="kbd-row"><span>Cycle character (in Text)</span><kbd>↑ ↓</kbd></div>
   <div class="kbd-row"><span>Close dialogs</span><kbd>Esc</kbd></div>
 </div>
@@ -2964,7 +2963,6 @@
   var playLabel = document.getElementById("playLabel");
   var playIcon = document.getElementById("playIcon");
   var pauseIcon = document.getElementById("pauseIcon");
-  var seedInput = document.getElementById("seedInput");
   var reseedBtn = document.getElementById("reseedBtn");
   var hoverHintWrap = document.getElementById("hoverHintWrap");
   var handHintWrap = document.getElementById("handHintWrap");
@@ -3064,33 +3062,15 @@
   }
   playBtn.addEventListener("click", togglePlay);
 
-  function applySeed(v){
-    var n = parseInt(v,10);
-    if(!isFinite(n) || n <= 0) return false;
-    S.seed = n >>> 0;
-    seedInput.value = S.seed;
-    rebuild();
-    return true;
-  }
-  seedInput.addEventListener("keydown", function(e){
-    if(e.key === "Enter"){
-      e.preventDefault();
-      if(applySeed(seedInput.value)) commit();
-      seedInput.blur();
-    } else if(e.key === "ArrowUp" || e.key === "ArrowDown"){
-      e.preventDefault();
-      var d = e.key === "ArrowUp" ? 1 : -1;
-      if(applySeed(String(Math.max(1, S.seed + d)))) commit();
-    }
-  });
-  seedInput.addEventListener("blur", function(){
-    if(!applySeed(seedInput.value)) seedInput.value = S.seed;
-    else commit();
-  });
+  /* Shuffle draws a new seed. The number itself is no longer on screen:
+     it is engineer vocabulary, and nobody was going to type 88172645
+     back in by hand. Reproducibility is unharmed -- the seed is still
+     in S, in the undo history (so undo returns the last arrangement)
+     and baked into every export, which is where you would actually go
+     to recover a composition. */
   reseedBtn.addEventListener("click", function(){
     /* the second deliberate carve-out from seeded determinism */
     S.seed = (Math.floor(Math.random() * 2147483646) + 1) >>> 0;
-    seedInput.value = S.seed;
     rebuild();
     commit();
   });
@@ -3263,7 +3243,6 @@
     letterInput.value = S.phrases.join("\n");
     syncTextAlign();
     syncStepper();
-    seedInput.value = S.seed;
 
     CONTROLS.forEach(function(c){
       var el = document.getElementById(c.id);
