@@ -18,13 +18,23 @@
 | **draw** | `dot` / `brick` / `ascii` —— **是个控件** | 形状焊死在 mode 里 |
 
 把 pool 和 distribution 分开，是本工具能在多段文字之间炸开重组的原因。
-合并采用**本仓库的四段切法**，把 cream 的七个分布作为 sampler 接进去，字形 mask 是第八个。
+合并采用**本仓库的四段切法**。
+
+**但 cream 只有三个模式能进这个契约**（逐个读过 `build()` 之后修正的说法）：
+DOTS、ARCS、ORBS 返回的都是点（ARCS 是极坐标点加一段角度跨度，ORBS 的 `place()`
+已经直接吐 `{x,y,r}`），而且 per-mark 字段和本仓库的 `shapes[]` 是同一套。
+FIELD / FLOW 是折线、AURA / SLICE 是栅格——它们保留自己的图元和现有契约。
+
+所以合并后是**一个点标记模式**取代 DOTS + ARCS + ORBS + **本工具整个**：
+分布 4 个（`grid` / `rings` / `orbit` / `glyph`），mark 形状 6 个
+（`dot` / `arc` / `sphere` / `brick` / `ascii` / `ring`），两者是独立的轴。
 
 ## 合并后本工具得到什么
 
-1. **炸开重组不再只在文字之间。** morph 变成任意两个分布之间的事：
-   `grid → glyph`、`rings → glyph`、`flow → grid`。sampler 可插拔之后这是免费的。
-2. **mark 形状和分布变成两个独立的轴。** 字形可以用圆环画，点阵可以用 ASCII 画。
+1. **炸开重组不再只在文字之间。** morph 变成任意两个点分布之间的事：
+   `grid → glyph`、`rings → glyph`、`orbit → grid`。sampler 可插拔之后这是免费的。
+2. **mark 形状和分布变成两个独立的轴。** 字形可以用描边弧或球体画（ARCS 和 ORBS 的
+   绘制方式），点阵可以用 ASCII 画。本工具的 `dot` / `brick` / `ascii` 是这个轴的起点。
 3. **SVG 导出。** cream 的 `toSVG()` 就是遍历点列表发几何，它不关心点从哪来。
    本工具现在只有 PNG / WebM / GIF。
 4. **麦克风。** cream 的三频段（bass → size / mid → speed / hi → jitter）驱动的是
