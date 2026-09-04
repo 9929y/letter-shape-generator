@@ -1,45 +1,69 @@
-# Product
+# Product Notes
 
 ## Register
 
-product
+Product / creative tool.
 
-## Users
+## User
 
-Yanice(产品设计师)以及她分享作品的观众。使用场景:桌面浏览器里打开单文件工具,调参数生成粒子文字动画,用于 vibecoding 创作、社交分享(小红书)、以及导出代码嵌入其他项目。观众端场景:打开导出的组件,hover 看粒子聚合成文字的效果。
+Designers and builders who want a small, local tool for generating animated typography assets and reusable web components.
 
-## Product Purpose
+## Product purpose
 
-粒子造字机(Letter Shape Generator):单文件 HTML 创作工具。输入文字(单字符到整句,含中文),数千个粒子按 seeded RNG 填充字形轮廓,持续颤动呼吸,并可在多段文字间炸开重组。支持循环播放与 hover 显现两种模式,可将当前参数烘焙导出为 Vanilla JS / React / Vue 组件。成功标准:调参即时反馈、60fps、导出代码开箱可用。
+Letter Shape Generator turns text into a controllable particle system. It should be fast enough for exploration, deterministic enough for design iteration, and exportable enough to become part of another project.
 
-## Brand Personality
+Success criteria:
 
-三个词:精密、克制、灵动。Apple 工具类应用的气质(参照 macOS 系统设置 / Final Cut 检查器面板):界面退后,让 canvas 里的粒子动画成为唯一主角。UI 本身的动效要像系统级控件一样细腻但不抢戏。
+- The same seed recreates the same composition.
+- Text stays centered and readable across single characters, words, and short phrases.
+- Loop and hover modes feel intentionally different.
+- Exported components match the editor output.
+- The tool works offline by opening one HTML file.
 
-## Anti-references
+## Product decisions
 
-- AI 紫色渐变 / 霓虹发光 / 赛博风(SKILL.md 明确记录:科技感色板被用户否决并回退过两次,不得再引入)
-- 花哨的面板装饰、bounce/elastic 缓动
-- 破坏 9 色默认色板与 #d6cfc5 画布底色的"审美改良"
+### Typography, not generic particles
 
-## Design Principles
+The tool is about letterforms. The particle system exists to support glyph recognition, phrase transitions, and interaction, not to become an abstract simulation.
 
-1. **Canvas 是主角,面板是仪器** — 面板 UI 的一切动效服务于操作反馈,绝不与粒子动画争夺注意力
-2. **每个参数改动即时可见** — 滑杆拖动时 canvas 实时响应,结构性重建在释放时发生
-3. **确定性优先** — 同一 seed 永远同一构图;工具行为可预测、可复现
-4. **系统级质感** — 控件的 hover/active/focus 反馈对齐 macOS 原生控件的时序与手感(120-300ms, ease-out)
-5. **导出即成品** — 导出代码不是示例,是可直接进生产的组件
+### Two clear modes
 
-## Deviations from SKILL.md (Yanice 明确授权,2026-08-27)
+Loop mode is for motion assets. Hover mode is for interactive page elements. Keeping these separate makes the controls easier to understand and gives exported code a clearer purpose.
 
-安装在 `02_agent_memory_and_skills/letter-shape-generator-tool-bycoraldesign/SKILL.md` 的规范仍是参数默认值与架构的权威,但以下两条已被 Yanice 本人明确覆盖,后续会话不要"修正"回去:
+### Inspector on the right
 
-1. **预设色板可以存在。** SKILL.md 记录「3 套科技感色板与高饱和默认板被明确否决并回退两次,不要再提」。该禁令针对的是 agent 自行发起的审美改良;Yanice 于 2026-08-26 主动要求加入莫兰迪色系。现状:默认仍是 Classic 九色加权板,Morandi 作为可切换预设并存。科技感/霓虹/高饱和方向的禁令依然有效。
-2. **参数面板移到右侧。** SKILL.md 写「面板在 LEFT 是刻意偏离右侧惯例,保持不变」。Yanice 于 2026-08-27 要求改到右侧,理由是对齐 Apple 自家工具的检查器惯例(Final Cut Inspector / Keynote 格式面板)并让画布占据视觉主位。
+The canvas stays visually dominant while the inspector behaves like a design-tool control panel. This matches the way designers tune properties while watching output.
 
-## Accessibility & Inclusion
+### Seeded control
 
-- 正文对比度 ≥ 4.5:1,双主题各自独立验证
-- prefers-reduced-motion:UI 过渡压平;canvas 动画是内容本体且默认暂停,hover 模式降级为直接切换
-- 键盘可达:滑杆原生可键控、swatch 为真按钮、focus-visible 焦点环、空格播放/暂停
-- 触控目标 ≥ 44px(小控件用扩大热区)
+Randomness is useful only when it can be returned to. Seeds make the tool dependable enough for real design iteration.
+
+### Export as reusable implementation
+
+The code exports are production-oriented components, not examples. The exported engine includes the same behavior as the editor preview.
+
+## Interaction model
+
+- Looks give fast starting points.
+- Text and seed stay near the top because they define the composition.
+- Shape, distribution, life, motion, color, and background are grouped by mental model.
+- Folded sections keep the first screen from becoming a wall of controls.
+- Keyboard and touch interactions are first-class, not afterthoughts.
+
+## Quality gates
+
+- Confirm seed reproducibility.
+- Confirm Chinese and English text fit the canvas.
+- Confirm loop timing and hover/touch behavior.
+- Confirm PNG, WebM, GIF, Vanilla, React, Vue, and JSON exports.
+- Confirm reduced-motion behavior.
+- Confirm keyboard navigation and focus visibility.
+
+## Public story
+
+Letter Shape Generator should be framed as a design-engineering tool:
+
+- Product: turns animated typography into something configurable and exportable.
+- Design: keeps creative control compact and scannable.
+- Implementation: seeded particle engine, glyph-mask sampling, multiple render forms, and framework exports.
+- QA: reproducible output, performance, accessibility, and export parity.
