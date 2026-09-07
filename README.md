@@ -1,8 +1,8 @@
 # Letter Shape Generator
 
-粒子造字机。单文件 HTML 工具:输入文字,数千个粒子填充字形轮廓,持续颤动呼吸,可在多段文字之间炸开重组,也可以做成 hover 才聚合的交互效果。调好之后能导出成 Vanilla JS / React / Vue 组件,或者 PNG / WebM / GIF。
+粒子造字机。输入文字,数千个粒子填充字形轮廓,持续颤动呼吸,可在多段文字之间炸开重组,也可以做成 hover 才聚合的交互效果。调好之后能导出成 Vanilla JS / React / Vue 组件,或者 PNG / WebM / GIF。
 
-**零依赖,离线可用。** 双击 `index.html` 就能跑,不需要构建、不需要服务器、不联网。
+**零依赖,离线可用。** 双击 `index.html` 就能跑,不需要构建、不需要服务器、不联网。`yy-studio.css` 提供与其他作品一致的 Pearl Flowglass token。
 
 ## 用法
 
@@ -63,7 +63,8 @@ Export 按钮,两类:
 ## 目录
 
 ```
-index.html    工具本体,单文件
+index.html    工具本体
+yy-studio.css Pearl Flowglass 共享 token（本地，无网络请求）
 PRODUCT.md    产品定位、设计原则、以及对原 skill 规范的两处授权偏离
 _recovery/    2026-08-27 一次写入事故的留档,见其中 README
 ```

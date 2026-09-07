@@ -12,16 +12,16 @@
      manual [data-theme="dark"] attribute.
   ============================================================ */
   :root{
-    --bg:#f5f5f7;
-    --panel-bg:rgba(255,255,255,.72);
-    --panel-bg-solid:#ffffff;
-    --panel-border:rgba(0,0,0,.08);
-    --text:#1d1d1f;
-    --text-2:#6e6e73;
-    --text-3:#98989d;
-    --accent:#0071e3;
-    --accent-ink:#ffffff;
-    --divider:rgba(0,0,0,.08);
+    --bg:var(--yy-ground,#f5f5f7);
+    --panel-bg:var(--yy-pane,rgba(255,255,255,.72));
+    --panel-bg-solid:var(--yy-pane-strong,#ffffff);
+    --panel-border:var(--yy-glass-border,rgba(0,0,0,.08));
+    --text:var(--yy-ink,#1d1d1f);
+    --text-2:var(--yy-ink-muted,#6e6e73);
+    --text-3:var(--yy-ink-quiet,#98989d);
+    --accent:var(--yy-ink,#0071e3);
+    --accent-ink:var(--yy-ground,#ffffff);
+    --divider:var(--yy-glass-border,rgba(0,0,0,.08));
     --track:rgba(0,0,0,.12);
     --control-bg:rgba(0,0,0,.05);
     --control-bg-strong:rgba(0,0,0,.08);
@@ -34,22 +34,22 @@
       inset 0 1px 0 rgba(255,255,255,.65),
       inset 1px 0 0 rgba(255,255,255,.25),
       inset 0 0 18px rgba(0,0,0,.022);
-    --r-lg:18px;
-    --r-md:12px;
+    --r-lg:var(--yy-radius-panel,18px);
+    --r-md:var(--yy-radius-control,12px);
     --r-sm:8px;
-    --r-pill:999px;
-    --shadow-panel:0 1px 1px rgba(0,0,0,.03),0 12px 32px rgba(0,0,0,.08);
+    --r-pill:var(--yy-radius-pill,999px);
+    --shadow-panel:var(--yy-shadow-pane,0 1px 1px rgba(0,0,0,.03),0 12px 32px rgba(0,0,0,.08));
     --shadow-ctrl:0 1px 2px rgba(0,0,0,.14);
     --shadow-modal:0 2px 8px rgba(0,0,0,.08),0 24px 64px rgba(0,0,0,.22);
     --shadow-sheet:0 -8px 32px rgba(0,0,0,.14);
     /* motion tokens: 100ms tap feedback, 150ms hover shifts,
        240ms state changes, 300-500ms layout. Exits run ~75%. */
     --dur-tap:100ms;
-    --dur-fast:150ms;
-    --dur-med:240ms;
-    --dur-layout:300ms;
+    --dur-fast:var(--yy-duration-quick,150ms);
+    --dur-med:var(--yy-duration-fast,240ms);
+    --dur-layout:var(--yy-duration-medium,300ms);
     --ease-out-quart:cubic-bezier(0.25,1,0.5,1);
-    --ease-out-quint:cubic-bezier(0.22,1,0.36,1);
+    --ease-out-quint:var(--yy-ease-out,cubic-bezier(0.22,1,0.36,1));
     --ease-out-expo:cubic-bezier(0.16,1,0.3,1);
     --ease:var(--ease-out-quart);
     color-scheme:light;
@@ -116,9 +116,12 @@
   html,body{height:100%;}
   body{
     margin:0;
-    background:var(--bg);
+    background:
+      radial-gradient(880px 640px at 7% 4%, rgba(255,255,255,.92), transparent 58%),
+      radial-gradient(760px 580px at 92% 94%, rgba(239,236,232,.86), transparent 60%),
+      var(--bg);
     color:var(--text);
-    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Helvetica Neue","PingFang SC",Arial,sans-serif;
+    font-family:var(--yy-font-sans,-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Helvetica Neue","PingFang SC",Arial,sans-serif);
     font-size:13px;
     -webkit-font-smoothing:antialiased;
     overflow:hidden;
@@ -746,6 +749,7 @@
     .kbd-pop{right:10px;}
   }
 </style>
+<link rel="stylesheet" href="yy-studio.css">
 </head>
 <body>
 <div class="app">
