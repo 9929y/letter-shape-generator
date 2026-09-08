@@ -70,9 +70,3 @@ This repo is strongest as a compact design-engineering artifact:
 - UX decision: a right-side inspector keeps the canvas central.
 - Engineering decision: export real components, not screenshots.
 - Quality decision: seed reproducibility and offline export.
-
-## Lineage
-
-The project was implemented from a particle-typography design brief credited to bycoraldesign. The application code, export system, interaction model, performance work, and product framing were built for this implementation.
-
-Keep this note if the source brief or license requires public attribution.

@@ -67,3 +67,7 @@ Letter Shape Generator should be framed as a design-engineering tool:
 - Design: keeps creative control compact and scannable.
 - Implementation: seeded particle engine, glyph-mask sampling, multiple render forms, and framework exports.
 - QA: reproducible output, performance, accessibility, and export parity.
+
+## Provenance
+
+The project was implemented from a particle-typography design brief credited to bycoraldesign. The application code, export system, interaction model, performance work, and product framing were built for this implementation.
