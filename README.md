@@ -68,7 +68,3 @@ yy-studio.css Pearl Flowglass 共享 token（本地，无网络请求）
 PRODUCT.md    产品定位、设计原则、以及对原 skill 规范的两处授权偏离
 _recovery/    2026-08-27 一次写入事故的留档,见其中 README
 ```
-
-## 出处
-
-设计规范来自 `letter-shape-generator-tool-bycoraldesign`(作者 bycoraldesign,经 RedSkill 分发)。本仓库的实现代码为自行编写。参数默认值、已移除功能清单、以及两处经明确授权的偏离(莫兰迪色板预设、面板改到右侧)记录在 `PRODUCT.md`。
