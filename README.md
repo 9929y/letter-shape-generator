@@ -62,11 +62,6 @@ The exported component carries the same particle engine used by the editor, so w
 - Performance: sprite caching for ASCII particles, direct canvas primitives for dots/bricks, and minimal per-particle state changes.
 - Accessibility: keyboard-reachable controls, visible focus states, reduced-motion handling, and touch targets sized for mobile use.
 
-## Public story
+## Licence
 
-This repo is strongest as a compact design-engineering artifact:
-
-- Product decision: two interaction modes instead of a generic particle toy.
-- UX decision: a right-side inspector keeps the canvas central.
-- Engineering decision: export real components, not screenshots.
-- Quality decision: seed reproducibility and offline export.
+MIT — see [LICENSE](LICENSE).
