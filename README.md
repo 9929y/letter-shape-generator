@@ -2,17 +2,17 @@
 
 Letter Shape Generator is a single-file particle typography tool. Type a word or phrase, tune the system, and export an animated text effect as code or media.
 
-The core idea is simple: particles fill a glyph mask, breathe in place, then either loop between phrases or scatter until the user hovers.
+The core idea is simple: particles fill a glyph mask, breathe in place, then either loop through scatter and re-form or scatter until the user hovers.
 
 ## Modes
 
 ### Loop
 
-Particles move through a sequence of phrases:
+Particles cycle continuously:
 
-1. Hold the current phrase.
+1. Hold the text.
 2. Scatter outward.
-3. Re-form into the next phrase.
+3. Re-form into the text.
 
 ### Hover
 
@@ -32,7 +32,7 @@ The inspector controls:
 - Shape: dots, bricks, or ASCII characters.
 - Distribution: count, edge feather, opacity.
 - Life: jitter, speed, breathing.
-- Motion: phrase sequence and timing.
+- Motion: hold, scatter, reform timing and spread.
 - Colors: palette, weight, and custom colors.
 - Background: preset or custom canvas color.
 
