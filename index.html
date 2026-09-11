@@ -159,7 +159,6 @@
     animation-delay:calc(min(var(--i,0),5)*45ms);
   }
   .topbar{animation:fade-in-kf 300ms var(--ease-out-quart) backwards;}
-  .statusbar{animation:fade-in-kf 300ms var(--ease-out-quart) 120ms backwards;}
   .canvas-stage canvas{animation:scale-in 450ms var(--ease-out-quint) 60ms backwards;}
 
   .fade-swap{animation:fade-in-kf 160ms var(--ease-out-quart);}
@@ -179,7 +178,7 @@
     box-shadow:var(--glass-edge);
   }
   @supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
-    .topbar,.panel,.statusbar,.modal-backdrop,.modal,.kbd-pop,.swatch-pop{background:var(--panel-bg-solid);}
+    .topbar,.panel,.modal-backdrop,.modal,.kbd-pop,.swatch-pop{background:var(--panel-bg-solid);}
   }
   .topbar h1{
     font-size:14px;font-weight:600;margin:0;letter-spacing:-.01em;
@@ -443,19 +442,9 @@
   .text-field:focus{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent);}
   textarea.text-field{width:100%;resize:vertical;line-height:1.5;min-height:64px;}
 
-  .stepper{display:flex;align-items:center;gap:6px;flex:1;min-width:0;}
   /* single character: centered; longer text: left-aligned for readability */
-  .stepper .text-field{flex:1;min-width:0;text-align:center;font-weight:600;font-size:14px;}
-  .stepper.multi .text-field{text-align:left;font-weight:500;font-size:13px;}
-  .step-btn{
-    width:28px;height:36px;flex:0 0 auto;border:0;border-radius:var(--r-sm);
-    background:var(--control-bg);color:var(--text-2);
-    display:flex;align-items:center;justify-content:center;
-    transition:background var(--dur-fast) var(--ease),color var(--dur-fast) var(--ease),transform var(--dur-tap) var(--ease),opacity var(--dur-fast) var(--ease);
-  }
-  .step-btn:hover:not(:disabled){background:var(--control-bg-strong);color:var(--text);}
-  .step-btn:active:not(:disabled){transform:scale(.94);}
-  .step-btn:disabled{opacity:.35;cursor:default;}
+  .letter-field{flex:1;min-width:0;text-align:center;font-weight:600;font-size:14px;}
+  .letter-field.multi{text-align:left;font-weight:500;font-size:13px;}
 
   .seed-field{
     flex:1;min-width:0;
@@ -569,11 +558,6 @@
   .btn.is-hidden{opacity:0;transform:scale(.96);pointer-events:none;}
   .btn:disabled{opacity:.45;cursor:default;pointer-events:none;}
 
-  .icon-swap{display:inline-grid;place-items:center;}
-  .icon-swap svg{grid-area:1/1;transition:opacity var(--dur-fast) var(--ease),transform var(--dur-fast) var(--ease);}
-  #pauseIcon{opacity:0;transform:scale(.6);}
-  #playBtn.playing #pauseIcon{opacity:1;transform:none;}
-  #playBtn.playing #playIcon{opacity:0;transform:scale(.6);}
 
   .color-input-wrap{display:flex;align-items:center;gap:10px;margin-top:12px;}
   input[type="color"]{
@@ -595,31 +579,6 @@
     box-shadow:var(--shadow-panel);
     touch-action:none;
   }
-
-  .statusbar{
-    flex:0 0 auto;min-height:34px;
-    display:flex;align-items:center;flex-wrap:wrap;gap:6px 14px;
-    padding:4px 16px;
-    font-size:11px;color:var(--text-2);
-    font-variant-numeric:tabular-nums;
-    border-top:1px solid var(--divider);
-    background:var(--panel-bg);
-    backdrop-filter:blur(20px) saturate(180%);
-    -webkit-backdrop-filter:blur(20px) saturate(180%);
-    box-shadow:var(--glass-edge);
-  }
-  .statusbar b{color:var(--text);font-weight:600;}
-  .statusbar .cell{display:flex;align-items:center;gap:5px;white-space:nowrap;}
-  .statusbar #textLabel{
-    display:inline-block;max-width:10em;overflow:hidden;text-overflow:ellipsis;
-    white-space:nowrap;vertical-align:bottom;
-  }
-  .statusbar .dot{
-    display:inline-block;width:6px;height:6px;border-radius:50%;
-    background:var(--text-3);
-    transition:background var(--dur-fast) var(--ease);
-  }
-  .statusbar .dot.playing{background:var(--accent);}
 
   /* ---------- export modal ---------- */
   .modal-backdrop{
@@ -694,10 +653,13 @@
   .copy-btn.copied .copy-idle{opacity:0;}
   .copy-btn.copied .copy-done{opacity:1;}
   .media-list{
-    display:flex;flex-direction:column;justify-content:center;
-    flex:1;min-height:0;overflow-y:auto;
+    display:flex;flex-direction:column;
+    min-height:0;overflow-y:auto;
     padding:2px 2px 4px;
   }
+  /* media has three fixed rows, so the frame hugs them instead of
+     leaving the code pane's empty height around them */
+  .modal-backdrop.media .modal{height:auto;max-height:min(72vh,100%);}
   .media-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 2px;}
   .media-row + .media-row{border-top:1px solid var(--divider);}
   .media-info{display:flex;flex-direction:column;gap:2px;min-width:0;}
@@ -722,10 +684,6 @@
     .body{display:block;position:relative;}
     .canvas-wrap{height:100%;}
     .canvas-stage{padding:12px 12px calc(var(--sheet-peek,216px) + 12px);}
-    .statusbar{
-      order:-1;
-      border-top:0;border-bottom:1px solid var(--divider);
-    }
     .panel{
       position:fixed;left:0;right:0;bottom:0;z-index:40;
       width:100% !important;min-width:0;max-width:none;
@@ -742,10 +700,10 @@
     .panel-pinned{padding:2px 14px 12px;}
     .panel-scroll{padding:10px 14px 44px;}
     .topbar{padding:0 12px;}
-    .statusbar{padding:4px 12px;}
     /* export modal: near-fullscreen bottom sheet, same rigid-frame rule */
     .modal-backdrop{padding:10px;align-items:flex-end;}
     .modal{width:100%;max-width:none;height:min(94dvh,100%);}
+    .modal-backdrop.media .modal{height:auto;max-height:min(94dvh,100%);}
     .kbd-pop{right:10px;}
   }
 </style>
@@ -793,13 +751,6 @@
       <div class="canvas-stage">
         <canvas id="c" width="1200" height="1200" aria-label="Particle text preview" role="img"></canvas>
       </div>
-      <div class="statusbar">
-        <span class="cell"><span class="dot" id="stateDot"></span><b id="stateLabel">static</b></span>
-        <span class="cell">Text <b id="textLabel">C</b></span>
-        <span class="cell">Font <b id="fontLabel">1140</b> px</span>
-        <span class="cell">Particles <b id="countLabel">2920</b></span>
-        <span class="cell"><b id="fpsLabel">60</b> fps</span>
-      </div>
     </main>
 
     <aside class="panel" id="panel" aria-label="Parameters">
@@ -810,28 +761,13 @@
         <div class="looks-row" id="looksRow" aria-label="Looks"></div>
         <div class="row" style="margin-bottom:0">
           <label for="letterInput">Text</label>
-          <div class="stepper" id="textStepper">
-            <button type="button" class="step-btn" id="letterPrev" aria-label="Previous character" title="Previous character (Down)">
-              <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 1.5 3 5l3.5 3.5"/></svg>
-            </button>
-            <input class="text-field" id="letterInput" maxlength="40" value="C" autocomplete="off" spellcheck="false" aria-label="Text, up to 40 characters" />
-            <button type="button" class="step-btn" id="letterNext" aria-label="Next character" title="Next character (Up)">
-              <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 1.5 7 5 3.5 8.5"/></svg>
-            </button>
-          </div>
+          <input class="text-field letter-field" id="letterInput" maxlength="40" value="C" autocomplete="off" spellcheck="false" aria-label="Text, up to 40 characters" />
         </div>
         <div class="quick-row">
           <div class="seg" id="modeSeg" role="group" aria-label="Interaction mode">
             <button type="button" data-mode="loop" class="active">Loop</button>
             <button type="button" data-mode="hover">Hover</button>
           </div>
-          <button class="btn btn-primary btn-compact" id="playBtn" aria-pressed="false" title="Play (Space)" style="min-width:88px">
-            <span class="icon-swap" aria-hidden="true">
-              <svg id="playIcon" width="11" height="12" viewBox="0 0 11 12" fill="currentColor"><path d="M1.6.9a1 1 0 0 1 1.5-.86l7.4 4.6a1 1 0 0 1 0 1.72l-7.4 4.6A1 1 0 0 1 1.6 10.1Z"/></svg>
-              <svg id="pauseIcon" width="10" height="12" viewBox="0 0 10 12" fill="currentColor"><rect x="0.5" y="0.5" width="3.2" height="11" rx="1.1"/><rect x="6.3" y="0.5" width="3.2" height="11" rx="1.1"/></svg>
-            </span>
-            <span id="playLabel">Play</span>
-          </button>
         </div>
         <div class="collapse collapsed" id="hoverHintWrap">
           <div class="collapse-inner">
@@ -946,16 +882,6 @@
           <div class="collapse" id="motionBody">
             <div class="collapse-inner">
               <div class="group-body">
-                <div class="collapse" id="seqRow">
-                  <div class="collapse-inner">
-                    <div class="ctl">
-                      <div class="ctl-head"><label for="seqInput">Sequence</label><span class="val">One phrase per line</span></div>
-                      <textarea class="text-field" id="seqInput" rows="3" spellcheck="false" aria-label="Sequence, one phrase per line">A
-B
-C</textarea>
-                    </div>
-                  </div>
-                </div>
                 <div class="collapse" id="holdRow">
                   <div class="collapse-inner">
                     <div class="ctl">
@@ -1024,11 +950,9 @@ C</textarea>
 </div>
 
 <div class="kbd-pop" id="kbdPop" hidden role="dialog" aria-label="Keyboard shortcuts">
-  <div class="kbd-row"><span>Play / Pause</span><kbd>Space</kbd></div>
   <div class="kbd-row"><span>Undo</span><kbd>⌘Z</kbd></div>
   <div class="kbd-row"><span>Redo</span><kbd>⇧⌘Z</kbd></div>
   <div class="kbd-row"><span>Step seed (in Seed)</span><kbd>↑ ↓</kbd></div>
-  <div class="kbd-row"><span>Cycle character (in Text)</span><kbd>↑ ↓</kbd></div>
   <div class="kbd-row"><span>Close dialogs</span><kbd>Esc</kbd></div>
 </div>
 
@@ -1550,7 +1474,6 @@ C</textarea>
         palette:"morandi", background:"#ccd2d6" } }
   ];
 
-  var LETTER_CYCLE = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
   var LS_KEY = "lsg.groups.v1";
 
   /* ============================================================
@@ -1563,7 +1486,6 @@ C</textarea>
   var S = {
     width:1200, height:1200,
     text:"C",
-    phrases:["A","B","C"],
     mode:"loop",
     shape:"circle",
     minSize:1, maxSize:15,
@@ -1574,8 +1496,7 @@ C</textarea>
     background:"#d6cfc5",
     colors: clonePalette(PALETTES.classic),
     palette:"classic",
-    seed:88172645,
-    paused:true
+    seed:88172645
   };
 
   var canvas = document.getElementById("c");
@@ -1584,7 +1505,7 @@ C</textarea>
   function buildCfg(){
     return {
       width:S.width, height:S.height,
-      text:S.text, phrases:S.phrases.slice(),
+      text:S.text, phrases:[S.text],
       mode:S.mode, shape:S.shape,
       minSize:S.minSize, maxSize:S.maxSize,
       rotationJitter:S.rotationJitter, brickBars:S.brickBars,
@@ -1602,7 +1523,6 @@ C</textarea>
   function rebuild(){
     if(engine) engine.destroy();
     liveCfg = buildCfg();
-    liveCfg.paused = S.paused;
     engine = particleTextEngine(canvas, liveCfg);
   }
   /* non-structural params are read from liveCfg every frame */
@@ -1627,7 +1547,7 @@ C</textarea>
 
   function snapshot(){
     return JSON.stringify({
-      text:S.text, phrases:S.phrases, mode:S.mode, shape:S.shape,
+      text:S.text, mode:S.mode, shape:S.shape,
       minSize:S.minSize, maxSize:S.maxSize, rotationJitter:S.rotationJitter,
       brickBars:S.brickBars, count:S.count, edgeFeather:S.edgeFeather,
       minOpacity:S.minOpacity, trembleAmp:S.trembleAmp, trembleSpeed:S.trembleSpeed,
@@ -2016,79 +1936,28 @@ C</textarea>
      Text, sequence, mode, play, seed
   ============================================================ */
   var letterInput = document.getElementById("letterInput");
-  var letterPrev = document.getElementById("letterPrev");
-  var letterNext = document.getElementById("letterNext");
-  var textStepper = document.getElementById("textStepper");
-  var seqInput = document.getElementById("seqInput");
   var modeSeg = document.getElementById("modeSeg");
-  var playBtn = document.getElementById("playBtn");
-  var playLabel = document.getElementById("playLabel");
-  var playIcon = document.getElementById("playIcon");
-  var pauseIcon = document.getElementById("pauseIcon");
   var seedInput = document.getElementById("seedInput");
   var reseedBtn = document.getElementById("reseedBtn");
   var hoverHintWrap = document.getElementById("hoverHintWrap");
-  var seqRow = document.getElementById("seqRow");
   var holdRow = document.getElementById("holdRow");
   var rotRow = document.getElementById("rotRow");
   var brickRow = document.getElementById("brickRow");
 
   function syncTextAlign(){
-    letterInput.style.textAlign = S.text.length > 1 ? "left" : "center";
-  }
-  function syncStepper(){
-    var multi = S.text.length > 1;
-    letterPrev.disabled = multi;
-    letterNext.disabled = multi;
-    textStepper.classList.toggle("multi", multi);
+    letterInput.classList.toggle("multi", S.text.length > 1);
   }
   letterInput.addEventListener("input", function(){
     S.text = letterInput.value.slice(0,40);
     syncTextAlign();
-    syncStepper();
     rebuild();
   });
   letterInput.addEventListener("change", function(){ commit(); });
-  letterInput.addEventListener("keydown", function(e){
-    if(S.text.length > 1) return;
-    if(e.key === "ArrowUp" || e.key === "ArrowDown"){
-      e.preventDefault();
-      stepLetter(e.key === "ArrowUp" ? 1 : -1);
-    }
-  });
-  function stepLetter(dir){
-    var up = S.text.toUpperCase();
-    var i = LETTER_CYCLE.indexOf(up);
-    if(i < 0) i = 0;
-    i = (i + dir + LETTER_CYCLE.length) % LETTER_CYCLE.length;
-    S.text = LETTER_CYCLE[i];
-    letterInput.value = S.text;
-    syncTextAlign();
-    syncStepper();
-    rebuild();
-    commit();
-  }
-  letterPrev.addEventListener("click", function(){ stepLetter(-1); });
-  letterNext.addEventListener("click", function(){ stepLetter(1); });
-
-  function parsePhrases(){
-    var lines = seqInput.value.split("\n").map(function(s){ return s.trim(); })
-      .filter(function(s){ return s.length; });
-    return lines.length ? lines : [S.text];
-  }
-  seqInput.addEventListener("input", function(){
-    S.phrases = parsePhrases();
-    rebuild();
-  });
-  seqInput.addEventListener("change", function(){ commit(); });
 
   function syncModeUI(){
     var hover = S.mode === "hover";
     hoverHintWrap.classList.toggle("collapsed", !hover);
-    seqRow.classList.toggle("collapsed", hover);
     holdRow.classList.toggle("collapsed", hover);
-    playBtn.disabled = hover;
-    playBtn.style.opacity = hover ? "0.45" : "";
   }
   modeSeg.addEventListener("click", function(e){
     var btn = e.target.closest("button[data-mode]");
@@ -2099,23 +1968,6 @@ C</textarea>
     rebuild();
     commit();
   });
-
-  function syncPlay(){
-    var playing = !S.paused;
-    playBtn.setAttribute("aria-pressed", playing ? "true" : "false");
-    playBtn.classList.toggle("playing", playing);
-    playLabel.textContent = playing ? "Pause" : "Play";
-    playIcon.style.opacity = playing ? "0" : "1";
-    pauseIcon.style.opacity = playing ? "1" : "0";
-  }
-  function togglePlay(){
-    if(S.mode === "hover") return;
-    S.paused = !S.paused;
-    if(engine) engine.setPaused(S.paused);
-    if(liveCfg) liveCfg.paused = S.paused;
-    syncPlay();
-  }
-  playBtn.addEventListener("click", togglePlay);
 
   function applySeed(v){
     var n = parseInt(v,10);
@@ -2154,8 +2006,6 @@ C</textarea>
   function syncAllControls(){
     letterInput.value = S.text;
     syncTextAlign();
-    syncStepper();
-    seqInput.value = S.phrases.join("\n");
     seedInput.value = S.seed;
 
     CONTROLS.forEach(function(c){
@@ -2173,7 +2023,6 @@ C</textarea>
 
     syncShapeRows();
     syncModeUI();
-    syncPlay();
     renderSwatches();
     renderBgSwatches();
     syncBackground();
@@ -2337,10 +2186,6 @@ C</textarea>
       }
       if(!exportModal.hidden){ closeExport(); return; }
     }
-    if(e.code === "Space" && !isTyping(document.activeElement)){
-      e.preventDefault();
-      togglePlay();
-    }
   });
 
   /* ============================================================
@@ -2361,9 +2206,7 @@ C</textarea>
   var ENGINE_SRC = particleTextEngine.toString();
 
   function cfgLiteral(){
-    var c = buildCfg();
-    delete c.paused;
-    return JSON.stringify(c, null, 2);
+    return JSON.stringify(buildCfg(), null, 2);
   }
   function buildVanilla(){
     return '<canvas id="particle-text"></canvas>\n<script>\n(function(){\n"use strict";\nvar cfg = ' +
@@ -2453,6 +2296,7 @@ C</textarea>
     if(!btn) return;
     setSegActive(exportSections, btn);
     var media = btn.getAttribute("data-section") === "media";
+    exportModal.classList.toggle("media", media);
     codeSection.hidden = media;
     mediaSection.hidden = !media;
     if(!media) showCode(currentKind);
@@ -2501,9 +2345,8 @@ C</textarea>
     if(typeof blobOrUrl !== "string") setTimeout(function(){ URL.revokeObjectURL(url); }, 4000);
   }
   function loopDuration(){
-    var n = Math.max(1, S.mode === "hover" ? 1 : S.phrases.length);
     if(S.mode === "hover") return Math.min(12, S.reformTime + 1.2 + S.scatterTime + 0.6);
-    return Math.min(12, (S.holdTime + S.scatterTime + S.reformTime) * n);
+    return Math.min(12, S.holdTime + S.scatterTime + S.reformTime);
   }
   function syncMediaDescs(){
     document.getElementById("pngDesc").textContent =
@@ -2584,13 +2427,6 @@ C</textarea>
       setBusy(false);
     };
 
-    var wasPaused = S.paused;
-    if(S.mode === "loop"){
-      S.paused = false;
-      if(engine) engine.setPaused(false);
-      if(liveCfg) liveCfg.paused = false;
-      syncPlay();
-    }
     if(engine) engine.resetLoop();
 
     rec.start();
@@ -2606,12 +2442,6 @@ C</textarea>
       } else {
         try{ rec.stop(); }catch(err){}
         if(engine) engine.setHover(false);
-        if(S.mode === "loop"){
-          S.paused = wasPaused;
-          if(engine) engine.setPaused(wasPaused);
-          if(liveCfg) liveCfg.paused = wasPaused;
-          syncPlay();
-        }
       }
     }
     requestAnimationFrame(step);
@@ -2775,7 +2605,6 @@ C</textarea>
       download(new Blob([bytes], { type: "image/gif" }), safeName() + ".gif");
       if(engine){
         engine.setHover(false);
-        engine.setPaused(S.paused);
         engine.release();
       }
       gifBtn.textContent = "Export";
@@ -2813,48 +2642,6 @@ C</textarea>
   };
 
   /* ============================================================
-     Statusbar
-  ============================================================ */
-  var stateDot = document.getElementById("stateDot");
-  var stateLabel = document.getElementById("stateLabel");
-  var textLabel = document.getElementById("textLabel");
-  var fontLabel = document.getElementById("fontLabel");
-  var countLabel = document.getElementById("countLabel");
-  var fpsLabel = document.getElementById("fpsLabel");
-  var lastState = "", lastText = "", frames = 0, fpsAcc = 0, lastT = null;
-
-  function statusLoop(now){
-    if(lastT === null) lastT = now;
-    var dt = (now - lastT) / 1000;
-    lastT = now;
-    frames++;
-    fpsAcc += dt;
-    if(fpsAcc >= 0.5){
-      fpsLabel.textContent = Math.round(frames / fpsAcc);
-      frames = 0; fpsAcc = 0;
-    }
-    if(engine){
-      var st = engine.getState();
-      if(st !== lastState){
-        lastState = st;
-        stateLabel.textContent = st;
-        stateLabel.classList.remove("fade-swap");
-        void stateLabel.offsetWidth;
-        stateLabel.classList.add("fade-swap");
-      }
-      var cur = engine.getCurrent();
-      if(cur !== lastText){
-        lastText = cur;
-        textLabel.textContent = cur;
-      }
-      fontLabel.textContent = Math.round(engine.getFontPx());
-      stateDot.classList.toggle("playing", S.mode === "hover" ? st !== "float" : !S.paused);
-    }
-    countLabel.textContent = S.count;
-    requestAnimationFrame(statusLoop);
-  }
-
-  /* ============================================================
      Init
   ============================================================ */
   initSeg(modeSeg);
@@ -2872,14 +2659,11 @@ C</textarea>
   renderBgSwatches();
   syncBackground();
   syncTextAlign();
-  syncStepper();
   syncShapeRows();
   syncModeUI();
-  syncPlay();
   applyDetent(false);
   rebuild();
   commit();
-  requestAnimationFrame(statusLoop);
 
   if(window.ResizeObserver){
     new ResizeObserver(function(){ syncAllSegs(true); }).observe(panel);
